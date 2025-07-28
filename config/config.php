@@ -6,11 +6,11 @@ session_start();
 date_default_timezone_set('America/Sao_Paulo');
 
 // Configurações de erro (desabilitar em produção)
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
-// URLs base
-define('BASE_URL', 'http://localhost');
+error_reporting(0);
+ini_set('display_errors', 0);
+    // Carregar configurações de produção
+    require_once __DIR__ . '/production.php';
+define('BASE_URL', 'https://app.plenor.com.br');
 define('ASSETS_URL', BASE_URL . '/assets');
 define('UPLOADS_URL', BASE_URL . '/uploads');
 

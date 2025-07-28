@@ -1,9 +1,13 @@
 # Sistema de Controle de Veículos - Configurações Apache
 RewriteEngine On
 
-# Redirecionar para HTTPS (descomente se usar SSL)
-# RewriteCond %{HTTPS} off
-# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+# Redirecionar para HTTPS
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Forçar domínio correto
+RewriteCond %{HTTP_HOST} !^app\.plenor\.com\.br$ [NC]
+RewriteRule ^(.*)$ https://app.plenor.com.br/$1 [L,R=301]
 
 # Remover extensão .php das URLs
 RewriteCond %{REQUEST_FILENAME} !-d

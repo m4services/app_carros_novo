@@ -1,13 +1,14 @@
 # Sistema de Controle de Veículos - Configurações Apache
 RewriteEngine On
 
-# Redirecionar para HTTPS
-RewriteCond %{HTTPS} off
+# Redirecionar para HTTPS (apenas se não estiver em HTTPS)
+RewriteCond %{HTTPS} !=on
+RewriteCond %{HTTP:X-Forwarded-Proto} !https
 RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
 # Forçar domínio correto
-RewriteCond %{HTTP_HOST} !^app\.plenor\.com\.br$ [NC]
-RewriteRule ^(.*)$ https://app.plenor.com.br/$1 [L,R=301]
+# RewriteCond %{HTTP_HOST} !^app\.plenor\.com\.br$ [NC]
+# RewriteRule ^(.*)$ https://app.plenor.com.br/$1 [L,R=301]
 
 # Remover extensão .php das URLs
 RewriteCond %{REQUEST_FILENAME} !-d
@@ -17,16 +18,15 @@ RewriteRule ^([^\.]+)$ $1.php [NC,L]
 # Redirecionar index para dashboard se logado
 RewriteRule ^$ index.php [L]
 
-# Bloquear acesso direto a arquivos sensíveis
-<Files "config.php">
-    Order allow,deny
-    Deny from all
-</Files>
+# Permitir acesso aos arquivos necessários
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^.*$ - [L]
 
-<Files "database.php">
+# Bloquear acesso direto a arquivos sensíveis
+<FilesMatch "^(config|database)\.php$">
     Order allow,deny
     Deny from all
-</Files>
+</FilesMatch>
 
 # Configurações de segurança
 <IfModule mod_headers.c>
@@ -68,9 +68,13 @@ php_value post_max_size 10M
 php_value max_execution_time 300
 php_value max_input_time 300
 php_value memory_limit 256M
+php_value max_input_vars 3000
 
 # Bloquear acesso a diretórios
 Options -Indexes
+
+# Permitir override
+AllowOverride All
 
 # Páginas de erro personalizadas
 ErrorDocument 404 /404.php

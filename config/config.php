@@ -1,6 +1,8 @@
 <?php
 // Configurações gerais do sistema
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Carregar variáveis de ambiente se existir arquivo .env
 if (file_exists(ROOT_PATH . '/.env')) {
@@ -14,16 +16,25 @@ if (file_exists(ROOT_PATH . '/.env')) {
 }
 
 // Definir timezone
-date_default_timezone_set('America/Sao_Paulo');
+if (!ini_get('date.timezone')) {
+    date_default_timezone_set('America/Sao_Paulo');
+}
 
 // Configurações de erro (desabilitar em produção)
 $is_production = ($_ENV['APP_ENV'] ?? 'production') === 'production';
 if ($is_production) {
-    error_reporting(0);
+    error_reporting(E_ERROR | E_PARSE);
     ini_set('display_errors', 0);
+    ini_set('log_errors', 1);
+    ini_set('error_log', ROOT_PATH . '/logs/error.log');
 } else {
     error_reporting(E_ALL);
     ini_set('display_errors', 1);
+}
+
+// Criar diretório de logs se não existir
+if (!is_dir(ROOT_PATH . '/logs')) {
+    @mkdir(ROOT_PATH . '/logs', 0755, true);
 }
 
 // URLs base
@@ -38,16 +49,16 @@ define('UPLOADS_PATH', ROOT_PATH . '/uploads');
 
 // Criar diretórios se não existirem
 if (!is_dir(UPLOADS_PATH)) {
-    mkdir(UPLOADS_PATH, 0755, true);
+    @mkdir(UPLOADS_PATH, 0755, true);
 }
 if (!is_dir(UPLOADS_PATH . '/usuarios')) {
-    mkdir(UPLOADS_PATH . '/usuarios', 0755, true);
+    @mkdir(UPLOADS_PATH . '/usuarios', 0755, true);
 }
 if (!is_dir(UPLOADS_PATH . '/veiculos')) {
-    mkdir(UPLOADS_PATH . '/veiculos', 0755, true);
+    @mkdir(UPLOADS_PATH . '/veiculos', 0755, true);
 }
 if (!is_dir(UPLOADS_PATH . '/logos')) {
-    mkdir(UPLOADS_PATH . '/logos', 0755, true);
+    @mkdir(UPLOADS_PATH . '/logos', 0755, true);
 }
 
 // Função para incluir arquivos

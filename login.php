@@ -1,6 +1,17 @@
 <?php
+// Definir ROOT_PATH se não estiver definido
+if (!defined('ROOT_PATH')) {
+    define('ROOT_PATH', __DIR__);
+}
+
 $page_title = 'Login';
-require_once 'includes/header.php';
+
+try {
+    require_once 'includes/header.php';
+} catch (Exception $e) {
+    error_log('Erro ao carregar header: ' . $e->getMessage());
+    die('Erro interno do servidor. Tente novamente em alguns minutos.');
+}
 
 $error = '';
 $success = '';

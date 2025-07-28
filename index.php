@@ -1,14 +1,23 @@
 <?php
+// Definir ROOT_PATH
+define('ROOT_PATH', __DIR__);
+
 // Redirecionar para dashboard se logado, senão para login
-require_once 'config/config.php';
-require_once 'config/database.php';
+try {
+    require_once 'config/config.php';
+    require_once 'config/database.php';
 
-$auth = new Auth();
-$auth->checkRememberToken();
+    $auth = new Auth();
+    $auth->checkRememberToken();
 
-if ($auth->isLoggedIn()) {
-    redirect('/dashboard.php');
-} else {
-    redirect('/login.php');
+    if ($auth->isLoggedIn()) {
+        redirect('/dashboard.php');
+    } else {
+        redirect('/login.php');
+    }
+} catch (Exception $e) {
+    error_log('Erro no index.php: ' . $e->getMessage());
+    header('Location: /login.php');
+    exit;
 }
 ?>

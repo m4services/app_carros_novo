@@ -1,19 +1,30 @@
 <?php
+// Definir ROOT_PATH se não estiver definido
+if (!defined('ROOT_PATH')) {
+    define('ROOT_PATH', dirname(__DIR__));
+}
+
 require_once 'config/config.php';
 require_once 'config/database.php';
 
 // Verificar se as classes existem antes de instanciar
-if (!class_exists('Auth')) {
-    die('Erro: Classe Auth não encontrada. Verifique se o arquivo classes/Auth.php existe.');
+try {
+    if (!class_exists('Auth')) {
+        throw new Exception('Classe Auth não encontrada');
+    }
+    
+    if (!class_exists('Config')) {
+        throw new Exception('Classe Config não encontrada');
+    }
+    
+    $auth = new Auth();
+    $config_class = new Config();
+    $config = $config_class->get();
+} catch (Exception $e) {
+    error_log('Erro ao inicializar classes: ' . $e->getMessage());
+    http_response_code(500);
+    die('Erro interno do servidor. Tente novamente em alguns minutos.');
 }
-
-if (!class_exists('Config')) {
-    die('Erro: Classe Config não encontrada. Verifique se o arquivo classes/Config.php existe.');
-}
-
-$auth = new Auth();
-$config_class = new Config();
-$config = $config_class->get();
 
 // Verificar token de lembrar
 try {

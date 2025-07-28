@@ -11,10 +11,10 @@ class Database {
     
     private function __construct() {
         // Configurações do banco de dados
-        $this->host = $_ENV['DB_HOST'] ?? 'localhost';
-        $this->database = $_ENV['DB_NAME'] ?? 'sistema_veiculos';
-        $this->username = $_ENV['DB_USER'] ?? 'root';
-        $this->password = $_ENV['DB_PASS'] ?? '';
+        $this->host = getenv('DB_HOST') ?: ($_ENV['DB_HOST'] ?? 'localhost');
+        $this->database = getenv('DB_NAME') ?: ($_ENV['DB_NAME'] ?? 'sistema_veiculos');
+        $this->username = getenv('DB_USER') ?: ($_ENV['DB_USER'] ?? 'root');
+        $this->password = getenv('DB_PASS') ?: ($_ENV['DB_PASS'] ?? '');
         
         try {
             $this->connection = new PDO(
@@ -28,7 +28,14 @@ class Database {
                 ]
             );
         } catch (PDOException $e) {
-            error_log("Erro de conexão com banco de dados: " . $e->getMessage());
+            $error_msg = "Erro de conexão com banco de dados: " . $e->getMessage();
+            error_log($error_msg);
+            
+            // Em desenvolvimento, mostrar erro específico
+            if (($_ENV['APP_ENV'] ?? 'production') !== 'production') {
+                die($error_msg);
+            }
+            
             http_response_code(500);
             die("Erro interno do servidor. Tente novamente em alguns minutos.");
         }

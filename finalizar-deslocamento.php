@@ -28,32 +28,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else if ($km_retorno < $active_trip['km_saida']) {
             $error = 'A quilometragem de retorno deve ser maior que a de saída.';
         } else {
-            $trip_data = [
-                'km_retorno' => $km_retorno,
-                'observacoes' => $observacoes
-            ];
-            
-            if ($trip_class->finishTrip($active_trip['id'], $trip_data)) {
-                $success = 'Deslocamento finalizado com sucesso!';
-                // Redirecionar após 2 segundos
-                echo '<script>
-                    setTimeout(function() {
-                        window.location.href = "dashboard.php";
-                    }, 2000);
-                </script>';
-            } else {
-                $error = 'Erro ao finalizar deslocamento.';
+            try {
+                $trip_data = [
+                    'km_retorno' => $km_retorno,
+                    'observacoes' => $observacoes
+                ];
+                
+                if ($trip_class->finishTrip($active_trip['id'], $trip_data)) {
+                    $success = 'Deslocamento finalizado com sucesso!';
+                    // Redirecionar após 2 segundos
+                    echo '<script>
+                        setTimeout(function() {
+                            window.location.href = "dashboard.php";
+                        }, 2000);
+                    </script>';
+                }
+            } catch (Exception $e) {
+                $error = $e->getMessage();
             }
         }
     }
 }
 ?>
 
-<div class="row justify-content-center">
+<div class="container-fluid px-2 px-md-4">
+    <div class="row justify-content-center">
     <div class="col-lg-8">
-        <div class="card animate-fade-in-up">
+        <div class="card animate-fade-in-up shadow-lg border-0">
             <div class="card-header" style="background: linear-gradient(135deg, #ffc107, #ff8c00); color: white;">
-                <h3 class="mb-0 fw-bold">
+                <h3 class="mb-0 fw-bold d-flex align-items-center">
                     <i class="bi bi-exclamation-triangle me-2"></i>
                     Deslocamento Ativo - Finalização Obrigatória
                 </h3>
@@ -78,20 +81,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 <?php endif; ?>
                 
-                <div class="alert alert-info mb-4">
+                <div class="alert alert-info mb-4 border-0" style="background: linear-gradient(135deg, rgba(13,202,240,0.1), rgba(13,202,240,0.05));">
                     <i class="bi bi-info-circle me-2"></i>
                     <strong>Atenção:</strong> Você possui um deslocamento ativo e deve finalizá-lo antes de acessar outras partes do sistema.
                 </div>
                 
                 <!-- Informações do deslocamento ativo -->
-                <div class="row mb-5">
+                <div class="row mb-4 g-3">
                     <div class="col-md-6">
-                        <div class="card h-100" style="background: linear-gradient(135deg, rgba(0,123,255,0.1), rgba(0,123,255,0.05)); border-left: 4px solid var(--primary-color);">
+                        <div class="card h-100 border-0 shadow-sm" style="background: linear-gradient(135deg, rgba(0,123,255,0.1), rgba(0,123,255,0.05)); border-left: 4px solid var(--primary-color);">
                             <div class="card-body p-4">
                                 <h5 class="card-title fw-bold text-primary mb-3">
                                     <i class="bi bi-info-circle me-2"></i>Informações do Deslocamento
                                 </h5>
-                                <div class="space-y-3">
+                                <div class="d-flex flex-column gap-3">
                                     <div class="d-flex align-items-center mb-2">
                                         <i class="bi bi-truck me-3 text-primary"></i>
                                         <div>
@@ -126,12 +129,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                     
                     <div class="col-md-6">
-                        <div class="card h-100" style="background: linear-gradient(135deg, rgba(255,193,7,0.1), rgba(255,193,7,0.05)); border-left: 4px solid #ffc107;">
+                        <div class="card h-100 border-0 shadow-sm" style="background: linear-gradient(135deg, rgba(255,193,7,0.1), rgba(255,193,7,0.05)); border-left: 4px solid #ffc107;">
                             <div class="card-body p-4">
                                 <h5 class="card-title fw-bold text-warning mb-3">
                                     <i class="bi bi-clock-history me-2"></i>Dados de Saída
                                 </h5>
-                                <div class="space-y-3">
+                                <div class="d-flex flex-column gap-3">
                                     <div class="d-flex align-items-center mb-2">
                                         <i class="bi bi-calendar3 me-3 text-warning"></i>
                                         <div>
@@ -164,7 +167,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
                 
                 <!-- Formulário de finalização -->
-                <div class="card" style="background: linear-gradient(135deg, rgba(40,167,69,0.1), rgba(40,167,69,0.05)); border-left: 4px solid var(--accent-color);">
+                <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, rgba(40,167,69,0.1), rgba(40,167,69,0.05)); border-left: 4px solid var(--accent-color);">
                     <div class="card-body p-4">
                         <h5 class="card-title fw-bold text-success mb-4">
                             <i class="bi bi-check-circle me-2"></i>Finalizar Deslocamento
@@ -173,14 +176,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <form method="POST" class="needs-validation" novalidate>
                     <input type="hidden" name="csrf_token" value="<?= generateCSRFToken() ?>">
                     
-                    <div class="row">
+                    <div class="row g-3">
                         <div class="col-md-6">
                             <div class="mb-4">
                                 <label for="km_retorno" class="form-label">
                                     <i class="bi bi-speedometer me-2"></i>
                                     <strong>KM de Retorno</strong> <span class="text-danger">*</span>
                                 </label>
-                                <div class="input-group">
+                                <div class="input-group input-group-lg">
                                     <span class="input-group-text">
                                         <i class="bi bi-speedometer"></i>
                                     </span>
@@ -206,7 +209,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <i class="bi bi-calculator me-2"></i>
                                     <strong>KM Rodados</strong>
                                 </label>
-                                <div class="input-group">
+                                <div class="input-group input-group-lg">
                                     <span class="input-group-text">
                                         <i class="bi bi-calculator"></i>
                                     </span>
@@ -235,7 +238,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                     </div>
                     
-                    <div class="d-flex justify-content-between align-items-center flex-wrap">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                         <div>
                             <small class="text-muted d-block mb-2">
                                 <i class="bi bi-clock me-2"></i>
@@ -247,7 +250,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </small>
                         </div>
                         
-                        <button type="submit" class="btn btn-success btn-lg px-4 py-3 fw-bold">
+                        <button type="submit" class="btn btn-success btn-lg px-4 py-3 fw-bold shadow">
                             <span class="loading spinner-border spinner-border-sm me-2"></span>
                             <i class="bi bi-check-circle me-2"></i>
                             Finalizar Deslocamento
@@ -258,6 +261,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             </div>
         </div>
+    </div>
     </div>
 </div>
 
@@ -272,23 +276,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (kmRodados > 0) {
             kmRodadosField.value = kmRodados.toLocaleString('pt-BR');
             kmRodadosField.classList.add('text-success', 'fw-bold');
+            kmRodadosField.style.backgroundColor = '#d1e7dd';
         } else {
             kmRodadosField.value = '';
             kmRodadosField.classList.remove('text-success', 'fw-bold');
+            kmRodadosField.style.backgroundColor = '';
+        }
+        
+        // Validação visual
+        if (kmRetorno > 0 && kmRetorno <= kmSaida) {
+            this.classList.add('is-invalid');
+            this.setCustomValidity('KM de retorno deve ser maior que KM de saída');
+        } else {
+            this.classList.remove('is-invalid');
+            this.setCustomValidity('');
         }
     });
     
     // Calcular duração do deslocamento
     function updateTripDuration() {
-        const startTime = new Date('<?= $active_trip['data_inicio'] ?>');
+        const startTime = new Date('<?= date('c', strtotime($active_trip['data_inicio'])) ?>');
         const now = new Date();
         const diff = now - startTime;
         
         const hours = Math.floor(diff / (1000 * 60 * 60));
         const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
         
-        document.getElementById('trip_duration').textContent = 
-            `${hours}h ${minutes}min`;
+        const durationElement = document.getElementById('trip_duration');
+        if (durationElement) {
+            durationElement.textContent = `${hours}h ${minutes}min`;
+        }
     }
     
     // Atualizar duração a cada minuto
@@ -302,7 +319,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if (!kmRetorno || parseInt(kmRetorno) <= kmSaida) {
             e.preventDefault();
-            alert('Por favor, informe uma quilometragem de retorno válida.');
+            showToast('Por favor, informe uma quilometragem de retorno válida (maior que ' + kmSaida.toLocaleString('pt-BR') + ' km)', 'danger');
             return;
         }
         
@@ -313,6 +330,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if (!confirm(confirmMessage)) {
             e.preventDefault();
+        } else {
+            // Mostrar loading
+            const submitBtn = this.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Finalizando...';
+            }
         }
     });
     
@@ -327,20 +351,74 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Auto-focus no campo KM de retorno
     document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => {
-            document.getElementById('km_retorno').focus();
+            const kmRetornoField = document.getElementById('km_retorno');
+            if (kmRetornoField) {
+                kmRetornoField.focus();
+                kmRetornoField.select();
+            }
         }, 500);
         
         // Adicionar efeito visual no campo ativo
         const kmRetornoField = document.getElementById('km_retorno');
-        kmRetornoField.addEventListener('focus', function() {
-            this.parentElement.style.transform = 'scale(1.02)';
-            this.parentElement.style.boxShadow = '0 0 20px rgba(0,123,255,0.3)';
-        });
+        if (kmRetornoField) {
+            kmRetornoField.addEventListener('focus', function() {
+                this.parentElement.style.transform = 'scale(1.02)';
+                this.parentElement.style.boxShadow = '0 0 20px rgba(40,167,69,0.3)';
+                this.parentElement.style.transition = 'all 0.3s ease';
+            });
+            
+            kmRetornoField.addEventListener('blur', function() {
+                this.parentElement.style.transform = 'scale(1)';
+                this.parentElement.style.boxShadow = '';
+            });
+        }
         
-        kmRetornoField.addEventListener('blur', function() {
-            this.parentElement.style.transform = 'scale(1)';
-            this.parentElement.style.boxShadow = '';
-        });
+        // Função para mostrar toast notifications
+        function showToast(message, type = 'info') {
+            const toastContainer = document.getElementById('toast-container') || createToastContainer();
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-white bg-${type} border-0`;
+            toast.setAttribute('role', 'alert');
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="bi bi-${getToastIcon(type)} me-2"></i>
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            `;
+            
+            toastContainer.appendChild(toast);
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+            
+            toast.addEventListener('hidden.bs.toast', () => {
+                toast.remove();
+            });
+        }
+        
+        function createToastContainer() {
+            const container = document.createElement('div');
+            container.id = 'toast-container';
+            container.className = 'toast-container position-fixed top-0 end-0 p-3';
+            container.style.zIndex = '9999';
+            document.body.appendChild(container);
+            return container;
+        }
+        
+        function getToastIcon(type) {
+            const icons = {
+                'success': 'check-circle',
+                'danger': 'exclamation-triangle',
+                'warning': 'exclamation-triangle',
+                'info': 'info-circle'
+            };
+            return icons[type] || 'info-circle';
+        }
+        
+        // Tornar funções globais
+        window.showToast = showToast;
     });
 </script>
 

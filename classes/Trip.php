@@ -20,7 +20,7 @@ class Trip {
             
             if (!$stmt->fetch()) {
                 $this->db->rollBack();
-                return false; // Veículo não disponível
+                throw new Exception('Veículo não disponível ou já em uso');
             }
             
             // Verificar se usuário já tem deslocamento ativo
@@ -29,20 +29,31 @@ class Trip {
             
             if ($stmt->fetchColumn() > 0) {
                 $this->db->rollBack();
-                return false; // Usuário já tem deslocamento ativo
+                throw new Exception('Usuário já possui um deslocamento ativo');
+            }
+            
+            // Validar KM de saída
+            $stmt = $this->db->prepare("SELECT hodometro_atual FROM veiculos WHERE id = ?");
+            $stmt->execute([$data['veiculo_id']]);
+            $hodometro_atual = $stmt->fetchColumn();
+            
+            if ($data['km_saida'] < $hodometro_atual) {
+                $this->db->rollBack();
+                throw new Exception('KM de saída não pode ser menor que o hodômetro atual do veículo (' . number_format($hodometro_atual) . ' km)');
             }
             
             // Criar deslocamento
             $stmt = $this->db->prepare("
                 INSERT INTO deslocamentos (usuario_id, veiculo_id, destino, km_saida, data_inicio, status) 
-                VALUES (?, ?, ?, ?, NOW(), 'ativo')
+                VALUES (?, ?, ?, ?, ?, 'ativo')
             ");
             
             $result = $stmt->execute([
                 $data['usuario_id'],
                 $data['veiculo_id'],
                 $data['destino'],
-                $data['km_saida']
+                $data['km_saida'],
+                date('Y-m-d H:i:s')
             ]);
             
             if ($result) {
@@ -51,10 +62,10 @@ class Trip {
             }
             
             $this->db->rollBack();
-            return false;
+            throw new Exception('Erro ao criar deslocamento');
         } catch (Exception $e) {
             $this->db->rollBack();
-            return false;
+            throw $e;
         }
     }
     
@@ -69,7 +80,13 @@ class Trip {
             
             if (!$trip) {
                 $this->db->rollBack();
-                return false;
+                throw new Exception('Deslocamento não encontrado ou já finalizado');
+            }
+            
+            // Validar KM de retorno
+            if ($data['km_retorno'] <= $trip['km_saida']) {
+                $this->db->rollBack();
+                throw new Exception('KM de retorno deve ser maior que KM de saída (' . number_format($trip['km_saida']) . ' km)');
             }
             
             // Atualizar deslocamento
@@ -77,7 +94,7 @@ class Trip {
                 UPDATE deslocamentos SET 
                     km_retorno = ?, 
                     observacoes = ?, 
-                    data_fim = NOW(), 
+                    data_fim = ?, 
                     status = 'finalizado' 
                 WHERE id = ?
             ");
@@ -85,6 +102,7 @@ class Trip {
             $result = $stmt->execute([
                 $data['km_retorno'],
                 $data['observacoes'] ?? null,
+                date('Y-m-d H:i:s'),
                 $trip_id
             ]);
             
@@ -92,19 +110,19 @@ class Trip {
                 // Atualizar hodômetro do veículo
                 $km_rodados = $data['km_retorno'] - $trip['km_saida'];
                 $stmt = $this->db->prepare("
-                    UPDATE veiculos SET hodometro_atual = hodometro_atual + ? WHERE id = ?
+                    UPDATE veiculos SET hodometro_atual = ? WHERE id = ?
                 ");
-                $stmt->execute([$km_rodados, $trip['veiculo_id']]);
+                $stmt->execute([$data['km_retorno'], $trip['veiculo_id']]);
                 
                 $this->db->commit();
                 return true;
             }
             
             $this->db->rollBack();
-            return false;
+            throw new Exception('Erro ao finalizar deslocamento');
         } catch (Exception $e) {
             $this->db->rollBack();
-            return false;
+            throw $e;
         }
     }
     

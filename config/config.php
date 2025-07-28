@@ -123,7 +123,9 @@ function formatDate($date, $format = 'd/m/Y') {
 function formatDateTime($datetime, $format = 'd/m/Y H:i') {
     if (!$datetime || $datetime === '0000-00-00 00:00:00') return '';
     try {
-        return date($format, strtotime($datetime));
+        $timestamp = strtotime($datetime);
+        if ($timestamp === false) return '';
+        return date($format, $timestamp);
     } catch (Exception $e) {
         return '';
     }

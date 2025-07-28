@@ -144,7 +144,14 @@ class Auth {
         ");
         $stmt->execute([$user_id]);
         
-        return $stmt->fetch();
+        $trip = $stmt->fetch();
+        
+        // Verificar se o deslocamento realmente existe e está ativo
+        if ($trip && $trip['status'] === 'ativo') {
+            return $trip;
+        }
+        
+        return null;
     }
     
     public function checkTripRedirect() {

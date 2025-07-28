@@ -57,22 +57,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         
         if (!$veiculo_id || !$usuario_id || !$destino || !$km_saida) {
             $error = 'Por favor, preencha todos os campos obrigatórios.';
-        } else if (!$vehicle || !$vehicle->isAvailable($veiculo_id)) {
-            $error = 'Veículo não está disponível.';
-        } else if ($auth->hasActiveTrip($usuario_id)) {
-            $error = 'Usuário já possui um deslocamento ativo.';
         } else {
-            $trip_data = [
-                'usuario_id' => $usuario_id,
-                'veiculo_id' => $veiculo_id,
-                'destino' => $destino,
-                'km_saida' => $km_saida
-            ];
-            
-            if ($trip && $trip->startTrip($trip_data)) {
-                redirect('/finalizar-deslocamento.php');
-            } else {
-                $error = 'Erro ao iniciar deslocamento.';
+            try {
+                $trip_data = [
+                    'usuario_id' => $usuario_id,
+                    'veiculo_id' => $veiculo_id,
+                    'destino' => $destino,
+                    'km_saida' => $km_saida
+                ];
+                
+                if ($trip && $trip->startTrip($trip_data)) {
+                    $message = 'Deslocamento iniciado com sucesso!';
+                    echo '<script>
+                        setTimeout(function() {
+                            window.location.href = "finalizar-deslocamento.php";
+                        }, 1500);
+                    </script>';
+                }
+            } catch (Exception $e) {
+                $error = $e->getMessage();
             }
         }
     }
@@ -232,7 +235,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     <?php $is_available = $vehicle ? $vehicle->isAvailable($veiculo['id']) : false; ?>
                     <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
                         <div class="card <?= $is_available ? 'border-success' : 'border-danger' ?>" 
-                             <?= $is_available ? 'style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#startTripModal" data-vehicle-id="' . $veiculo['id'] . '" data-vehicle-name="' . escape($veiculo['nome']) . '"' : '' ?>>
+                             <?= $is_available ? 'style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#startTripModal" data-vehicle-id="' . $veiculo['id'] . '" data-vehicle-name="' . escape($veiculo['nome']) . '" data-vehicle-km="' . $veiculo['hodometro_atual'] . '"' : '' ?>>
                             <div class="position-relative">
                                 <?php if ($veiculo['foto']): ?>
                                     <img src="<?= UPLOADS_URL ?>/veiculos/<?= escape($veiculo['foto']) ?>" 
@@ -353,7 +356,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     
                     <div class="mb-3">
                         <label for="km_saida" class="form-label">KM de Saída *</label>
-                        <input type="number" class="form-control" name="km_saida" required min="0">
+                        <input type="number" class="form-control" name="km_saida" id="km_saida" required min="0">
+                        <div class="form-text">
+                            <span id="km_info">Hodômetro atual: <span id="current_km">0</span> km</span>
+                        </div>
                     </div>
                 </div>
                 
@@ -375,12 +381,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             if (button) {
                 const vehicleId = button.getAttribute('data-vehicle-id');
                 const vehicleName = button.getAttribute('data-vehicle-name');
+                const vehicleKm = button.getAttribute('data-vehicle-km');
                 
                 const modalVeiculoId = document.getElementById('modal_veiculo_id');
                 const modalVeiculoNome = document.getElementById('modal_veiculo_nome');
+                const kmSaidaInput = document.getElementById('km_saida');
+                const currentKmSpan = document.getElementById('current_km');
                 
                 if (modalVeiculoId) modalVeiculoId.value = vehicleId || '';
                 if (modalVeiculoNome) modalVeiculoNome.value = vehicleName || '';
+                if (kmSaidaInput) {
+                    kmSaidaInput.min = vehicleKm || 0;
+                    kmSaidaInput.value = vehicleKm || 0;
+                }
+                if (currentKmSpan) currentKmSpan.textContent = new Intl.NumberFormat('pt-BR').format(vehicleKm || 0);
             }
         });
     }

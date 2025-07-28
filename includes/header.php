@@ -216,6 +216,40 @@ try {
             }
         }
         
+        .shadow-lg {
+            box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175) !important;
+        }
+        
+        .input-group-lg .form-control {
+            font-size: 1.1rem;
+            padding: 0.75rem 1rem;
+        }
+        
+        .gap-3 {
+            gap: 1rem !important;
+        }
+        
+        @media (max-width: 768px) {
+            .container-fluid {
+                padding-left: 0.5rem;
+                padding-right: 0.5rem;
+            }
+            
+            .card-body {
+                padding: 1.5rem !important;
+            }
+            
+            .btn-lg {
+                padding: 0.75rem 1.5rem;
+                font-size: 1rem;
+            }
+            
+            .input-group-lg .form-control {
+                font-size: 1rem;
+                padding: 0.5rem 0.75rem;
+            }
+        }
+        
         .loading {
             display: none !important;
         }

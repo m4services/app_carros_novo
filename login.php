@@ -146,8 +146,10 @@ try {
                                 <i class="bi bi-box-arrow-in-right me-2"></i>
                                 Entrar
                             </button>
-                        </form>
-                        
+                        <div class="login-logo mb-4">
+                            <img src="<?= UPLOADS_URL ?>/logos/<?= escape($config['logo']) ?>" alt="Logo" 
+                                 class="img-fluid" style="max-height: 140px; filter: brightness(0) invert(1);">
+                        </div>
                         <div class="text-center mt-4">
                             <small class="text-muted">
                                 <strong>Usuário padrão:</strong> admin@sistema.com<br>
@@ -164,6 +166,12 @@ try {
 <script>
     function togglePassword() {
         const senhaInput = document.getElementById('senha');
+                            <?php if ($config['logo']): ?>
+                                <div class="login-form-logo mb-3">
+                                    <img src="<?= UPLOADS_URL ?>/logos/<?= escape($config['logo']) ?>" alt="Logo" 
+                                         class="img-fluid" style="max-height: 60px;">
+                                </div>
+                            <?php endif; ?>
         const toggleIcon = document.getElementById('toggleIcon');
         
         if (senhaInput.type === 'password') {

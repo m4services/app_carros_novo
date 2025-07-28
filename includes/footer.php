@@ -1,5 +1,5 @@
 <?php if (isset($auth) && $auth->isLoggedIn() && basename($_SERVER['PHP_SELF']) !== 'login.php'): ?>
-            </main>
+            </div>
         </div>
     </div>
     <?php endif; ?>
@@ -24,19 +24,22 @@
     
     <!-- Custom JavaScript -->
     <script>
-        // Esconder loading quando página carregar
-        document.addEventListener('DOMContentLoaded', function() {
-            const pageLoading = document.getElementById('pageLoading');
-            if (pageLoading) {
-                pageLoading.classList.add('hide');
-            }
-        });
+        // Toggle sidebar (mobile)
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('show');
+        }
         
-        // Esconder loading quando tudo carregar
-        window.addEventListener('load', function() {
-            const pageLoading = document.getElementById('pageLoading');
-            if (pageLoading) {
-                pageLoading.classList.add('hide');
+        // Close sidebar when clicking outside (mobile)
+        document.addEventListener('click', function(e) {
+            const sidebar = document.getElementById('sidebar');
+            const menuToggle = document.querySelector('.menu-toggle');
+            
+            if (window.innerWidth <= 768 && 
+                !sidebar.contains(e.target) && 
+                !menuToggle.contains(e.target) && 
+                sidebar.classList.contains('show')) {
+                sidebar.classList.remove('show');
             }
         });
         
@@ -250,8 +253,8 @@
             <?php if (isset($auth) && $auth->isLoggedIn()): ?>
             loadNotifications();
             
-            // Atualizar notificações a cada 30 segundos
-            setInterval(loadNotifications, 30000);
+            // Atualizar notificações a cada 60 segundos
+            setInterval(loadNotifications, 60000);
             <?php endif; ?>
         });
         
@@ -378,79 +381,6 @@
             })
             .catch(error => console.error('Erro ao marcar todas as notificações como lidas:', error));
         }
-        
-        // Interceptar formulários para mostrar loading
-        document.addEventListener('submit', function(e) {
-            if (e.target.tagName === 'FORM' && !e.target.classList.contains('no-loading')) {
-                const submitBtn = e.target.querySelector('button[type="submit"]');
-                if (submitBtn) {
-                    showLoading(submitBtn);
-                }
-            }
-        });
-        
-        // Função para copiar texto para clipboard
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(function() {
-                showToast('Texto copiado para a área de transferência!', 'success');
-            }).catch(function() {
-                showToast('Erro ao copiar texto', 'danger');
-            });
-        }
-        
-        // Função para validar CPF
-        function validateCPF(cpf) {
-            cpf = cpf.replace(/[^\d]+/g, '');
-            if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
-            
-            let sum = 0;
-            for (let i = 0; i < 9; i++) {
-                sum += parseInt(cpf.charAt(i)) * (10 - i);
-            }
-            let remainder = (sum * 10) % 11;
-            if (remainder === 10 || remainder === 11) remainder = 0;
-            if (remainder !== parseInt(cpf.charAt(9))) return false;
-            
-            sum = 0;
-            for (let i = 0; i < 10; i++) {
-                sum += parseInt(cpf.charAt(i)) * (11 - i);
-            }
-            remainder = (sum * 10) % 11;
-            if (remainder === 10 || remainder === 11) remainder = 0;
-            return remainder === parseInt(cpf.charAt(10));
-        }
-        
-        // Função para validar email
-        function validateEmail(email) {
-            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            return re.test(email);
-        }
-        
-        // Função para formatar telefone
-        function formatPhone(phone) {
-            phone = phone.replace(/\D/g, '');
-            if (phone.length === 11) {
-                return phone.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
-            } else if (phone.length === 10) {
-                return phone.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
-            }
-            return phone;
-        }
-        
-        // Função para formatar CPF
-        function formatCPF(cpf) {
-            cpf = cpf.replace(/\D/g, '');
-            return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-        }
-        
-        // Adicionar máscaras automáticas
-        document.addEventListener('input', function(e) {
-            if (e.target.dataset.mask === 'cpf') {
-                e.target.value = formatCPF(e.target.value);
-            } else if (e.target.dataset.mask === 'phone') {
-                e.target.value = formatPhone(e.target.value);
-            }
-        });
     </script>
 </body>
 </html>

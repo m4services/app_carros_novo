@@ -1,5 +1,4 @@
 <?php
-// Definir ROOT_PATH se não estiver definido
 if (!defined('ROOT_PATH')) {
     define('ROOT_PATH', __DIR__);
 }
@@ -9,20 +8,7 @@ $page_title = 'Login';
 try {
     require_once 'includes/header.php';
 } catch (Exception $e) {
-    error_log('Erro ao carregar header: ' . $e->getMessage());
-    
-    // Em desenvolvimento, mostrar erro detalhado
-    $is_production = ($_ENV['APP_ENV'] ?? 'development') === 'production';
-    if (!$is_production) {
-        die('<div style="padding: 20px; background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 5px; margin: 20px; font-family: Arial, sans-serif;">
-            <h3>Erro na página de Login</h3>
-            <p><strong>Erro:</strong> ' . $e->getMessage() . '</p>
-            <p><strong>Arquivo:</strong> ' . $e->getFile() . '</p>
-            <p><strong>Linha:</strong> ' . $e->getLine() . '</p>
-        </div>');
-    } else {
-        die('Erro interno do servidor. Tente novamente em alguns minutos.');
-    }
+    die('Erro ao carregar sistema: ' . $e->getMessage() . '<br><a href="diagnose.php">Executar Diagnóstico</a>');
 }
 
 $error = '';
@@ -68,45 +54,23 @@ try {
         <div class="col-md-6 d-flex align-items-center justify-content-center position-relative overflow-hidden">
             <div class="position-absolute top-0 start-0 w-100 h-100" 
                  style="background: linear-gradient(135deg, var(--primary-color) 0%, color-mix(in srgb, var(--primary-color) 85%, black) 100%); opacity: 0.95;"></div>
-            <div class="position-absolute top-0 start-0 w-100 h-100" 
-                 style="background: url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"><defs><pattern id=\"grain\" width=\"100\" height=\"100\" patternUnits=\"userSpaceOnUse\"><circle cx=\"25\" cy=\"25\" r=\"1\" fill=\"white\" opacity=\"0.1\"/><circle cx=\"75\" cy=\"75\" r=\"1\" fill=\"white\" opacity=\"0.1\"/><circle cx=\"50\" cy=\"10\" r=\"1\" fill=\"white\" opacity=\"0.05\"/></pattern></defs><rect width=\"100\" height=\"100\" fill=\"url(%23grain)\"/></svg>'); opacity: 0.3;"></div>
             <div class="text-center position-relative animate-fade-in-up">
                 <?php if ($config['logo']): ?>
                     <img src="<?= UPLOADS_URL ?>/logos/<?= escape($config['logo']) ?>" alt="Logo" 
-                         class="img-fluid mb-4 animate-fade-in-up" style="max-height: 140px; filter: brightness(0) invert(1);">
+                         class="img-fluid mb-4" style="max-height: 140px; filter: brightness(0) invert(1);">
                 <?php endif; ?>
-                <h1 class="display-3 text-white mb-4 fw-bold animate-slide-in-left" style="animation-delay: 0.2s;">
+                <h1 class="display-3 text-white mb-4 fw-bold">
                     <?= escape($config['nome_empresa']) ?>
                 </h1>
-                <p class="lead text-white mb-5 animate-slide-in-left" style="animation-delay: 0.4s; opacity: 0.9;">
-                    Sistema completo para controle de veículos, manutenções e deslocamentos com tecnologia PWA.
+                <p class="lead text-white mb-5" style="opacity: 0.9;">
+                    Sistema completo para controle de veículos, manutenções e deslocamentos.
                 </p>
-                <div class="d-flex justify-content-center gap-4 animate-slide-in-left" style="animation-delay: 0.6s;">
-                    <div class="text-center">
-                        <div class="bg-white bg-opacity-20 rounded-circle p-3 mb-2 mx-auto" style="width: 70px; height: 70px; display: flex; align-items: center; justify-content: center;">
-                            <i class="bi bi-truck text-white" style="font-size: 2rem;"></i>
-                        </div>
-                        <small class="text-white">Veículos</small>
-                    </div>
-                    <div class="text-center">
-                        <div class="bg-white bg-opacity-20 rounded-circle p-3 mb-2 mx-auto" style="width: 70px; height: 70px; display: flex; align-items: center; justify-content: center;">
-                            <i class="bi bi-tools text-white" style="font-size: 2rem;"></i>
-                        </div>
-                        <small class="text-white">Manutenções</small>
-                    </div>
-                    <div class="text-center">
-                        <div class="bg-white bg-opacity-20 rounded-circle p-3 mb-2 mx-auto" style="width: 70px; height: 70px; display: flex; align-items: center; justify-content: center;">
-                            <i class="bi bi-graph-up text-white" style="font-size: 2rem;"></i>
-                        </div>
-                        <small class="text-white">Relatórios</small>
-                    </div>
-                </div>
             </div>
         </div>
         
         <div class="col-md-6 d-flex align-items-center justify-content-center bg-light">
             <div class="w-100" style="max-width: 400px;">
-                <div class="card animate-fade-in-up" style="animation-delay: 0.3s;">
+                <div class="card">
                     <div class="card-body p-5">
                         <div class="text-center mb-4">
                             <div class="bg-primary bg-opacity-10 rounded-circle p-3 d-inline-flex mb-3">
@@ -183,16 +147,16 @@ try {
                             </button>
                         </form>
                         
-                        <div class="text-center mt-5">
+                        <div class="text-center mt-4">
                             <small class="text-muted">
-                                <i class="bi bi-shield-check me-1"></i>
-                                Sistema seguro com tecnologia PWA
+                                <strong>Usuário padrão:</strong> admin@sistema.com<br>
+                                <strong>Senha:</strong> admin123
                             </small>
                         </div>
                         
                         <div class="text-center mt-3">
                             <small class="text-muted">
-                                <strong>Usuário padrão:</strong> admin@sistema.com | <strong>Senha:</strong> admin123
+                                <a href="diagnose.php" class="text-decoration-none">🔍 Diagnóstico do Sistema</a>
                             </small>
                         </div>
                     </div>
@@ -216,27 +180,8 @@ try {
         }
     }
     
-    // Auto-focus no primeiro campo
     document.addEventListener('DOMContentLoaded', function() {
-        setTimeout(() => {
-            document.getElementById('email').focus();
-        }, 500);
-        
-        // Adicionar efeito de digitação no título
-        const title = document.querySelector('.display-3');
-        if (title) {
-            const text = title.textContent;
-            title.textContent = '';
-            let i = 0;
-            const typeWriter = () => {
-                if (i < text.length) {
-                    title.textContent += text.charAt(i);
-                    i++;
-                    setTimeout(typeWriter, 100);
-                }
-            };
-            setTimeout(typeWriter, 1000);
-        }
+        document.getElementById('email').focus();
     });
 </script>
 

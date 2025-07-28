@@ -1,50 +1,67 @@
 <?php
 class Config {
     private $db;
+    private $default_config = [
+        'id' => 1,
+        'logo' => null,
+        'fonte' => 'Inter',
+        'cor_primaria' => '#007bff',
+        'cor_secundaria' => '#6c757d',
+        'cor_destaque' => '#28a745',
+        'nome_empresa' => 'Sistema de Veículos'
+    ];
     
     public function __construct() {
-        $this->db = Database::getInstance()->getConnection();
+        try {
+            $this->db = Database::getInstance()->getConnection();
+        } catch (Exception $e) {
+            error_log('Erro ao conectar Config com banco: ' . $e->getMessage());
+            $this->db = null;
+        }
     }
     
     public function get() {
-        $stmt = $this->db->prepare("SELECT * FROM configuracoes LIMIT 1");
-        $stmt->execute();
-        $config = $stmt->fetch();
-        
-        if (!$config) {
-            // Criar configuração padrão se não existir
-            try {
-                $stmt = $this->db->prepare("
-                    INSERT INTO configuracoes (logo, fonte, cor_primaria, cor_secundaria, cor_destaque, nome_empresa) 
-                    VALUES (NULL, 'Inter', '#007bff', '#6c757d', '#28a745', 'Sistema de Veículos')
-                ");
-                $stmt->execute();
-                
-                return $this->get();
-            } catch (Exception $e) {
-                // Retornar configuração padrão se não conseguir inserir
-                return [
-                    'id' => 1,
-                    'logo' => null,
-                    'fonte' => 'Inter',
-                    'cor_primaria' => '#007bff',
-                    'cor_secundaria' => '#6c757d',
-                    'cor_destaque' => '#28a745',
-                    'nome_empresa' => 'Sistema de Veículos'
-                ];
-            }
+        if (!$this->db) {
+            return $this->default_config;
         }
         
-        return $config;
+        try {
+            $stmt = $this->db->prepare("SELECT * FROM configuracoes LIMIT 1");
+            $stmt->execute();
+            $config = $stmt->fetch();
+            
+            if (!$config) {
+                // Tentar criar configuração padrão
+                try {
+                    $stmt = $this->db->prepare("
+                        INSERT INTO configuracoes (logo, fonte, cor_primaria, cor_secundaria, cor_destaque, nome_empresa) 
+                        VALUES (NULL, 'Inter', '#007bff', '#6c757d', '#28a745', 'Sistema de Veículos')
+                    ");
+                    $stmt->execute();
+                    return $this->get();
+                } catch (Exception $e) {
+                    error_log('Erro ao criar configuração padrão: ' . $e->getMessage());
+                    return $this->default_config;
+                }
+            }
+            
+            return $config;
+        } catch (Exception $e) {
+            error_log('Erro ao buscar configurações: ' . $e->getMessage());
+            return $this->default_config;
+        }
     }
     
     public function update($data, $logo = null) {
+        if (!$this->db) {
+            return false;
+        }
+        
         try {
             $config = $this->get();
             $logo_name = $config['logo'];
             
             if ($logo && $logo['error'] === UPLOAD_ERR_OK) {
-                // Remover logo antigo
                 if ($logo_name) {
                     $old_logo = UPLOADS_PATH . '/logos/' . $logo_name;
                     if (file_exists($old_logo)) {
@@ -71,6 +88,7 @@ class Config {
                 $config['id']
             ]);
         } catch (Exception $e) {
+            error_log('Erro ao atualizar configurações: ' . $e->getMessage());
             return false;
         }
     }

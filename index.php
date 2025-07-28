@@ -1,8 +1,8 @@
 <?php
-// Definir ROOT_PATH
-define('ROOT_PATH', __DIR__);
+if (!defined('ROOT_PATH')) {
+    define('ROOT_PATH', __DIR__);
+}
 
-// Redirecionar para dashboard se logado, senão para login
 try {
     require_once 'config/config.php';
     require_once 'config/database.php';

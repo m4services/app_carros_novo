@@ -4,23 +4,17 @@ class Database {
     private static $instance = null;
     private $connection;
     
-    private $host;
-    private $database;
-    private $username;
-    private $password;
-    
     private function __construct() {
-        // Configurações do banco de dados
-        $this->host = getenv('DB_HOST') ?: ($_ENV['DB_HOST'] ?? 'localhost');
-        $this->database = getenv('DB_NAME') ?: ($_ENV['DB_NAME'] ?? 'sistema_veiculos');
-        $this->username = getenv('DB_USER') ?: ($_ENV['DB_USER'] ?? 'root');
-        $this->password = getenv('DB_PASS') ?: ($_ENV['DB_PASS'] ?? '');
-        
         try {
+            $host = $_ENV['DB_HOST'] ?? 'localhost';
+            $database = $_ENV['DB_NAME'] ?? 'sistema_veiculos';
+            $username = $_ENV['DB_USER'] ?? 'root';
+            $password = $_ENV['DB_PASS'] ?? '';
+            
             $this->connection = new PDO(
-                "mysql:host={$this->host};dbname={$this->database};charset=utf8mb4",
-                $this->username,
-                $this->password,
+                "mysql:host={$host};dbname={$database};charset=utf8mb4",
+                $username,
+                $password,
                 [
                     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
@@ -32,14 +26,30 @@ class Database {
             $error_msg = "Erro de conexão com banco de dados: " . $e->getMessage();
             error_log($error_msg);
             
-            // Em desenvolvimento, mostrar erro específico
             $is_production = ($_ENV['APP_ENV'] ?? 'development') === 'production';
             if (!$is_production) {
-                die("Erro de conexão com banco: " . $e->getMessage() . "<br><br>Verifique se o MySQL está rodando e se as configurações estão corretas.");
+                die("
+                <div style='padding: 20px; background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 5px; margin: 20px; font-family: Arial, sans-serif;'>
+                    <h3>❌ Erro de Conexão com Banco de Dados</h3>
+                    <p><strong>Erro:</strong> {$e->getMessage()}</p>
+                    <p><strong>Host:</strong> {$host}</p>
+                    <p><strong>Database:</strong> {$database}</p>
+                    <p><strong>Username:</strong> {$username}</p>
+                    <hr>
+                    <p><strong>Soluções:</strong></p>
+                    <ul>
+                        <li>Verifique se o MySQL está rodando</li>
+                        <li>Verifique as configurações no arquivo .env</li>
+                        <li>Execute o script SQL para criar as tabelas</li>
+                        <li>Verifique se o banco de dados existe</li>
+                    </ul>
+                    <p><a href='diagnose.php'>🔍 Executar Diagnóstico Completo</a></p>
+                </div>
+                ");
             }
             
             http_response_code(500);
-            die("Erro interno do servidor. Tente novamente em alguns minutos.");
+            die("Erro interno do servidor. Verifique as configurações do banco de dados.");
         }
     }
     
@@ -54,7 +64,6 @@ class Database {
         return $this->connection;
     }
     
-    // Método para testar conexão
     public function testConnection() {
         try {
             $stmt = $this->connection->query("SELECT 1");

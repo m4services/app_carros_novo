@@ -1,6 +1,13 @@
 <?php
 // Configurações gerais do sistema
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Definir ROOT_PATH se não estiver definido
+if (!defined('ROOT_PATH')) {
+    define('ROOT_PATH', dirname(__DIR__));
+}
 
 // Carregar variáveis de ambiente se existir arquivo .env
 if (file_exists(ROOT_PATH . '/.env')) {
@@ -16,21 +23,33 @@ if (file_exists(ROOT_PATH . '/.env')) {
 // Definir timezone
 date_default_timezone_set('America/Sao_Paulo');
 
-// Configurações de erro (desabilitar em produção)
-$is_production = ($_ENV['APP_ENV'] ?? 'production') === 'production';
-if (!$is_production) {
-    error_reporting(E_ERROR | E_PARSE);
+// Configurações de erro
+$is_production = ($_ENV['APP_ENV'] ?? 'development') === 'production';
+if ($is_production) {
+    error_reporting(0);
     ini_set('display_errors', 0);
     ini_set('log_errors', 1);
     ini_set('error_log', ROOT_PATH . '/logs/error.log');
 } else {
     error_reporting(E_ALL);
     ini_set('display_errors', 1);
+    ini_set('log_errors', 1);
+    ini_set('error_log', ROOT_PATH . '/logs/error.log');
 }
 
-// Criar diretório de logs se não existir
-if (!is_dir(ROOT_PATH . '/logs')) {
-    @mkdir(ROOT_PATH . '/logs', 0755, true);
+// Criar diretórios necessários
+$dirs = [
+    ROOT_PATH . '/logs',
+    ROOT_PATH . '/uploads',
+    ROOT_PATH . '/uploads/usuarios',
+    ROOT_PATH . '/uploads/veiculos',
+    ROOT_PATH . '/uploads/logos'
+];
+
+foreach ($dirs as $dir) {
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0777, true);
+    }
 }
 
 // URLs base
@@ -39,55 +58,24 @@ define('ASSETS_URL', BASE_URL . '/assets');
 define('UPLOADS_URL', BASE_URL . '/uploads');
 
 // Paths
-if (!defined('ROOT_PATH')) {
-    define('ROOT_PATH', dirname(__DIR__));
-}
 define('ASSETS_PATH', ROOT_PATH . '/assets');
 define('UPLOADS_PATH', ROOT_PATH . '/uploads');
 
-// Criar diretórios se não existirem
-if (!is_dir(UPLOADS_PATH)) {
-    @mkdir(UPLOADS_PATH, 0755, true);
-}
-if (!is_dir(UPLOADS_PATH . '/usuarios')) {
-    @mkdir(UPLOADS_PATH . '/usuarios', 0777, true);
-}
-if (!is_dir(UPLOADS_PATH . '/veiculos')) {
-    @mkdir(UPLOADS_PATH . '/veiculos', 0777, true);
-}
-if (!is_dir(UPLOADS_PATH . '/logos')) {
-    @mkdir(UPLOADS_PATH . '/logos', 0777, true);
-}
-
-// Função para incluir arquivos
-function includeFile($path) {
-    $fullPath = ROOT_PATH . '/' . $path;
-    if (file_exists($fullPath)) {
-        include_once $fullPath;
+// Autoload de classes
+spl_autoload_register(function($className) {
+    $file = ROOT_PATH . '/classes/' . $className . '.php';
+    if (file_exists($file)) {
+        require_once $file;
         return true;
     }
     return false;
-}
-
-// Autoload de classes
-spl_autoload_register(function($className) {
-    $paths = [
-        'classes/',
-    ];
-    
-    foreach ($paths as $path) {
-        $file = ROOT_PATH . '/' . $path . $className . '.php';
-        if (file_exists($file)) {
-            include_once $file;
-            return;
-        }
-    }
 });
 
 // Função para redirecionar
 function redirect($url) {
     if (headers_sent()) {
         echo '<script>window.location.href = "' . BASE_URL . $url . '";</script>';
+        echo '<meta http-equiv="refresh" content="0;url=' . BASE_URL . $url . '">';
     } else {
         header("Location: " . BASE_URL . $url);
     }
@@ -102,15 +90,13 @@ function escape($string) {
 
 // Função para formatar data
 function formatDate($date, $format = 'd/m/Y') {
-    if (!$date) return '';
-    if ($date === '0000-00-00') return '';
+    if (!$date || $date === '0000-00-00') return '';
     return date($format, strtotime($date));
 }
 
 // Função para formatar data e hora
 function formatDateTime($datetime, $format = 'd/m/Y H:i') {
-    if (!$datetime) return '';
-    if ($datetime === '0000-00-00 00:00:00') return '';
+    if (!$datetime || $datetime === '0000-00-00 00:00:00') return '';
     return date($format, strtotime($datetime));
 }
 
@@ -127,7 +113,7 @@ function validateCSRFToken($token) {
     return isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
 }
 
-// Função para debug (remover em produção)
+// Função para debug
 function debug($data, $die = false) {
     if (!$is_production) {
         echo '<pre>';

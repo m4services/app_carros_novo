@@ -1,4 +1,4 @@
-<?php if ($auth->isLoggedIn() && basename($_SERVER['PHP_SELF']) !== 'login.php'): ?>
+<?php if (isset($auth) && $auth->isLoggedIn() && basename($_SERVER['PHP_SELF']) !== 'login.php'): ?>
             </main>
         </div>
     </div>
@@ -24,6 +24,22 @@
     
     <!-- Custom JavaScript -->
     <script>
+        // Esconder loading quando página carregar
+        document.addEventListener('DOMContentLoaded', function() {
+            const pageLoading = document.getElementById('pageLoading');
+            if (pageLoading) {
+                pageLoading.classList.add('hide');
+            }
+        });
+        
+        // Esconder loading quando tudo carregar
+        window.addEventListener('load', function() {
+            const pageLoading = document.getElementById('pageLoading');
+            if (pageLoading) {
+                pageLoading.classList.add('hide');
+            }
+        });
+        
         // Função para mostrar loading
         function showLoading(element) {
             const loading = element.querySelector('.loading');
@@ -226,37 +242,7 @@
                     }
                 }
             });
-            
-            // Adicionar indicador de loading global
-            const loadingIndicator = document.createElement('div');
-            loadingIndicator.id = 'global-loading';
-            loadingIndicator.innerHTML = `
-                <div class="d-flex align-items-center justify-content-center position-fixed top-0 start-0 w-100 h-100" 
-                     style="background: rgba(255,255,255,0.9); backdrop-filter: blur(5px); z-index: 9999; display: none;">
-                    <div class="text-center">
-                        <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;"></div>
-                        <div class="fw-bold">Carregando...</div>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(loadingIndicator);
         });
-        
-        // Função para mostrar loading global
-        function showGlobalLoading() {
-            const loading = document.querySelector('#global-loading > div');
-            if (loading) {
-                loading.style.display = 'flex';
-            }
-        }
-        
-        // Função para esconder loading global
-        function hideGlobalLoading() {
-            const loading = document.querySelector('#global-loading > div');
-            if (loading) {
-                loading.style.display = 'none';
-            }
-        }
         
         // Interceptar formulários para mostrar loading
         document.addEventListener('submit', function(e) {
@@ -266,21 +252,6 @@
                     showLoading(submitBtn);
                 }
             }
-        });
-        
-        // Esconder loading quando a página carregar
-        window.addEventListener('load', function() {
-            hideGlobalLoading();
-            
-            // Esconder todos os loadings de botões
-            const loadingElements = document.querySelectorAll('.loading.show');
-            loadingElements.forEach(loading => {
-                loading.classList.remove('show');
-                const btn = loading.closest('button');
-                if (btn) {
-                    hideLoading(btn);
-                }
-            });
         });
         
         // Função para copiar texto para clipboard

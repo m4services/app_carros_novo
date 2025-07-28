@@ -8,20 +8,24 @@ if (!defined('ROOT_PATH')) {
 try {
     require_once ROOT_PATH . '/config/config.php';
     require_once ROOT_PATH . '/config/database.php';
-    require_once ROOT_PATH . '/config/production.php';
-} catch (Exception $e) {
-    die('Erro ao carregar configurações: ' . $e->getMessage());
-}
-
-// Inicializar classes principais
-try {
-    $auth = new Auth();
-    $config_class = new Config();
-    $config = $config_class->get();
-} catch (Exception $e) {
-    error_log('Erro ao inicializar classes: ' . $e->getMessage());
     
-    // Configuração de fallback
+    // Carregar configurações de produção se existir
+    $production_file = ROOT_PATH . '/config/production.php';
+    if (file_exists($production_file)) {
+        require_once $production_file;
+    }
+} catch (Exception $e) {
+    error_log('Erro ao carregar configurações: ' . $e->getMessage());
+    
+    // Fallback básico
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    
+    function escape($string) {
+        return htmlspecialchars($string ?? '', ENT_QUOTES, 'UTF-8');
+    }
+    
     $config = [
         'logo' => null,
         'fonte' => 'Inter',
@@ -30,20 +34,57 @@ try {
         'cor_destaque' => '#28a745',
         'nome_empresa' => 'Sistema de Veículos'
     ];
+}
+
+// Inicializar classes principais
+try {
+    if (class_exists('Auth')) {
+        $auth = new Auth();
+    } else {
+        throw new Exception('Classe Auth não encontrada');
+    }
+    
+    if (class_exists('Config')) {
+        $config_class = new Config();
+        $config = $config_class->get();
+    } else {
+        throw new Exception('Classe Config não encontrada');
+    }
+} catch (Exception $e) {
+    error_log('Erro ao inicializar classes: ' . $e->getMessage());
+    
+    // Configuração de fallback
+    if (!isset($config)) {
+        $config = [
+            'logo' => null,
+            'fonte' => 'Inter',
+            'cor_primaria' => '#007bff',
+            'cor_secundaria' => '#6c757d',
+            'cor_destaque' => '#28a745',
+            'nome_empresa' => 'Sistema de Veículos'
+        ];
+    }
     
     // Criar auth mock para evitar erros
-    $auth = new class {
-        public function isLoggedIn() { return false; }
-        public function isAdmin() { return false; }
-        public function requireLogin() { header('Location: login.php'); exit; }
-        public function checkRememberToken() {}
-        public function checkTripRedirect() {}
-    };
+    if (!isset($auth)) {
+        $auth = new class {
+            public function isLoggedIn() { return false; }
+            public function isAdmin() { return false; }
+            public function requireLogin() { 
+                if (!headers_sent()) {
+                    header('Location: login.php'); 
+                }
+                exit; 
+            }
+            public function checkRememberToken() {}
+            public function checkTripRedirect() {}
+        };
+    }
 }
 
 // Verificar token de lembrar
 try {
-    if (method_exists($auth, 'checkRememberToken')) {
+    if (isset($auth) && method_exists($auth, 'checkRememberToken')) {
         $auth->checkRememberToken();
     }
 } catch (Exception $e) {
@@ -52,7 +93,7 @@ try {
 
 // Verificar redirecionamento para deslocamento ativo
 try {
-    if (method_exists($auth, 'checkTripRedirect')) {
+    if (isset($auth) && method_exists($auth, 'checkTripRedirect')) {
         $auth->checkTripRedirect();
     }
 } catch (Exception $e) {
@@ -182,10 +223,36 @@ try {
         .loading.show {
             display: inline-block !important;
         }
+        
+        /* Loading overlay */
+        .page-loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        
+        .page-loading.hide {
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <?php if ($auth->isLoggedIn() && basename($_SERVER['PHP_SELF']) !== 'login.php'): ?>
+    <!-- Loading overlay -->
+    <div class="page-loading" id="pageLoading">
+        <div class="text-center">
+            <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;"></div>
+            <div class="fw-bold">Carregando...</div>
+        </div>
+    </div>
+    
+    <?php if (isset($auth) && $auth->isLoggedIn() && basename($_SERVER['PHP_SELF']) !== 'login.php'): ?>
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
@@ -206,7 +273,7 @@ try {
                             </a>
                         </li>
                         
-                        <?php if ($auth->isAdmin()): ?>
+                        <?php if (isset($auth) && $auth->isAdmin()): ?>
                         <li class="nav-item">
                             <a class="nav-link <?= in_array(basename($_SERVER['PHP_SELF']), ['veiculos.php', 'veiculo-form.php']) ? 'active' : '' ?>" href="veiculos.php">
                                 <i class="bi bi-truck me-2"></i>Veículos

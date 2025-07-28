@@ -8,7 +8,8 @@ $page_title = 'Login';
 try {
     require_once 'includes/header.php';
 } catch (Exception $e) {
-    die('Erro ao carregar sistema: ' . $e->getMessage() . '<br><a href="diagnose.php">Executar Diagnóstico</a>');
+    error_log('Erro ao carregar sistema: ' . $e->getMessage());
+    die('Erro ao carregar sistema. Verifique as configurações.');
 }
 
 $error = '';
@@ -26,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'Por favor, preencha todos os campos.';
         } else {
             try {
-                if ($auth->login($email, $senha, $lembrar)) {
+                if (isset($auth) && $auth->login($email, $senha, $lembrar)) {
                     redirect('/dashboard.php');
                 } else {
                     $error = 'Email ou senha incorretos.';
@@ -41,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Se já está logado, redirecionar
 try {
-    if ($auth->isLoggedIn()) {
+    if (isset($auth) && $auth->isLoggedIn()) {
         redirect('/dashboard.php');
     }
 } catch (Exception $e) {
@@ -175,7 +176,10 @@ try {
     }
     
     document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('email').focus();
+        const emailField = document.getElementById('email');
+        if (emailField) {
+            emailField.focus();
+        }
     });
 </script>
 

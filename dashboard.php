@@ -8,24 +8,30 @@ $page_title = 'Dashboard';
 try {
     require_once 'includes/header.php';
 } catch (Exception $e) {
-    die('Erro ao carregar sistema: ' . $e->getMessage());
+    error_log('Erro ao carregar sistema: ' . $e->getMessage());
+    die('Erro ao carregar sistema. Verifique as configurações.');
 }
 
-$auth->requireLogin();
+if (isset($auth)) {
+    $auth->requireLogin();
+} else {
+    header('Location: login.php');
+    exit;
+}
 
 $error = '';
 $message = '';
 
 try {
-    $vehicle = new Vehicle();
-    $maintenance = new Maintenance();
-    $trip = new Trip();
+    $vehicle = class_exists('Vehicle') ? new Vehicle() : null;
+    $maintenance = class_exists('Maintenance') ? new Maintenance() : null;
+    $trip = class_exists('Trip') ? new Trip() : null;
 
-    $vehicles = $vehicle->getAll();
-    $available_vehicles = $vehicle->getAvailable();
-    $overdue_maintenances = $maintenance->getOverdue();
-    $upcoming_maintenances = $maintenance->getUpcoming();
-    $recent_trips = $trip->getTrips($auth->isAdmin() ? null : $_SESSION['user_id'], ['status' => 'finalizado']);
+    $vehicles = $vehicle ? $vehicle->getAll() : [];
+    $available_vehicles = $vehicle ? $vehicle->getAvailable() : [];
+    $overdue_maintenances = $maintenance ? $maintenance->getOverdue() : [];
+    $upcoming_maintenances = $maintenance ? $maintenance->getUpcoming() : [];
+    $recent_trips = $trip ? $trip->getTrips($auth->isAdmin() ? null : $_SESSION['user_id'], ['status' => 'finalizado']) : [];
     $recent_trips = array_slice($recent_trips, 0, 5);
 } catch (Exception $e) {
     error_log('Erro ao carregar dados do dashboard: ' . $e->getMessage());
@@ -51,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         
         if (!$veiculo_id || !$usuario_id || !$destino || !$km_saida) {
             $error = 'Por favor, preencha todos os campos obrigatórios.';
-        } else if (!$vehicle->isAvailable($veiculo_id)) {
+        } else if (!$vehicle || !$vehicle->isAvailable($veiculo_id)) {
             $error = 'Veículo não está disponível.';
         } else if ($auth->hasActiveTrip($usuario_id)) {
             $error = 'Usuário já possui um deslocamento ativo.';
@@ -63,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 'km_saida' => $km_saida
             ];
             
-            if ($trip->startTrip($trip_data)) {
+            if ($trip && $trip->startTrip($trip_data)) {
                 redirect('/finalizar-deslocamento.php');
             } else {
                 $error = 'Erro ao iniciar deslocamento.';
@@ -223,7 +229,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         <?php else: ?>
             <div class="row">
                 <?php foreach ($vehicles as $veiculo): ?>
-                    <?php $is_available = $vehicle->isAvailable($veiculo['id']); ?>
+                    <?php $is_available = $vehicle ? $vehicle->isAvailable($veiculo['id']) : false; ?>
                     <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
                         <div class="card <?= $is_available ? 'border-success' : 'border-danger' ?>" 
                              <?= $is_available ? 'style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#startTripModal" data-vehicle-id="' . $veiculo['id'] . '" data-vehicle-name="' . escape($veiculo['nome']) . '"' : '' ?>>
@@ -326,12 +332,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                             <select class="form-select" name="usuario_id" required>
                                 <option value="">Selecione o motorista</option>
                                 <?php 
-                                $user_class = new User();
-                                $drivers = $user_class->getDrivers();
-                                foreach ($drivers as $driver): 
+                                if (class_exists('User')) {
+                                    $user_class = new User();
+                                    $drivers = $user_class->getDrivers();
+                                    foreach ($drivers as $driver): 
                                 ?>
                                     <option value="<?= $driver['id'] ?>"><?= escape($driver['nome']) ?></option>
-                                <?php endforeach; ?>
+                                <?php 
+                                    endforeach;
+                                }
+                                ?>
                             </select>
                         </div>
                     <?php endif; ?>
@@ -362,11 +372,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     if (startTripModal) {
         startTripModal.addEventListener('show.bs.modal', function (event) {
             const button = event.relatedTarget;
-            const vehicleId = button.getAttribute('data-vehicle-id');
-            const vehicleName = button.getAttribute('data-vehicle-name');
-            
-            document.getElementById('modal_veiculo_id').value = vehicleId;
-            document.getElementById('modal_veiculo_nome').value = vehicleName;
+            if (button) {
+                const vehicleId = button.getAttribute('data-vehicle-id');
+                const vehicleName = button.getAttribute('data-vehicle-name');
+                
+                const modalVeiculoId = document.getElementById('modal_veiculo_id');
+                const modalVeiculoNome = document.getElementById('modal_veiculo_nome');
+                
+                if (modalVeiculoId) modalVeiculoId.value = vehicleId || '';
+                if (modalVeiculoNome) modalVeiculoNome.value = vehicleName || '';
+            }
         });
     }
 </script>

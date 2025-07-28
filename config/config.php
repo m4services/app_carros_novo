@@ -10,13 +10,22 @@ if (!defined('ROOT_PATH')) {
 }
 
 // Carregar variáveis de ambiente se existir arquivo .env
-if (file_exists(ROOT_PATH . '/.env')) {
-    $lines = file(ROOT_PATH . '/.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    foreach ($lines as $line) {
-        if (strpos($line, '=') !== false && strpos($line, '#') !== 0) {
-            list($key, $value) = explode('=', $line, 2);
-            $_ENV[trim($key)] = trim($value);
+$env_file = ROOT_PATH . '/.env';
+if (file_exists($env_file)) {
+    try {
+        $lines = file($env_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        if ($lines !== false) {
+            foreach ($lines as $line) {
+                if (strpos($line, '=') !== false && strpos($line, '#') !== 0) {
+                    $parts = explode('=', $line, 2);
+                    if (count($parts) === 2) {
+                        $_ENV[trim($parts[0])] = trim($parts[1]);
+                    }
+                }
+            }
         }
+    } catch (Exception $e) {
+        error_log('Erro ao carregar .env: ' . $e->getMessage());
     }
 }
 
@@ -28,18 +37,21 @@ $is_production = ($_ENV['APP_ENV'] ?? 'development') === 'production';
 if ($is_production) {
     error_reporting(0);
     ini_set('display_errors', 0);
-    ini_set('log_errors', 1);
-    ini_set('error_log', ROOT_PATH . '/logs/error.log');
 } else {
     error_reporting(E_ALL);
     ini_set('display_errors', 1);
-    ini_set('log_errors', 1);
-    ini_set('error_log', ROOT_PATH . '/logs/error.log');
 }
+
+// Configurar log de erros
+ini_set('log_errors', 1);
+$log_dir = ROOT_PATH . '/logs';
+if (!is_dir($log_dir)) {
+    @mkdir($log_dir, 0755, true);
+}
+ini_set('error_log', $log_dir . '/error.log');
 
 // Criar diretórios necessários
 $dirs = [
-    ROOT_PATH . '/logs',
     ROOT_PATH . '/uploads',
     ROOT_PATH . '/uploads/usuarios',
     ROOT_PATH . '/uploads/veiculos',
@@ -53,7 +65,10 @@ foreach ($dirs as $dir) {
 }
 
 // URLs base
-define('BASE_URL', $_ENV['APP_URL'] ?? 'http://localhost:8000');
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+$host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+$base_url = $_ENV['APP_URL'] ?? ($protocol . $host);
+define('BASE_URL', rtrim($base_url, '/'));
 define('ASSETS_URL', BASE_URL . '/assets');
 define('UPLOADS_URL', BASE_URL . '/uploads');
 
@@ -65,7 +80,12 @@ define('UPLOADS_PATH', ROOT_PATH . '/uploads');
 spl_autoload_register(function($className) {
     $file = ROOT_PATH . '/classes/' . $className . '.php';
     if (file_exists($file)) {
-        require_once $file;
+        try {
+            require_once $file;
+        } catch (Exception $e) {
+            error_log("Erro ao carregar classe {$className}: " . $e->getMessage());
+            return false;
+        }
         return true;
     }
     return false;
@@ -73,11 +93,12 @@ spl_autoload_register(function($className) {
 
 // Função para redirecionar
 function redirect($url) {
+    $full_url = BASE_URL . $url;
     if (headers_sent()) {
-        echo '<script>window.location.href = "' . BASE_URL . $url . '";</script>';
-        echo '<meta http-equiv="refresh" content="0;url=' . BASE_URL . $url . '">';
+        echo '<script>window.location.href = "' . $full_url . '";</script>';
+        echo '<meta http-equiv="refresh" content="0;url=' . $full_url . '">';
     } else {
-        header("Location: " . BASE_URL . $url);
+        header("Location: " . $full_url);
     }
     exit;
 }
@@ -91,13 +112,21 @@ function escape($string) {
 // Função para formatar data
 function formatDate($date, $format = 'd/m/Y') {
     if (!$date || $date === '0000-00-00') return '';
-    return date($format, strtotime($date));
+    try {
+        return date($format, strtotime($date));
+    } catch (Exception $e) {
+        return '';
+    }
 }
 
 // Função para formatar data e hora
 function formatDateTime($datetime, $format = 'd/m/Y H:i') {
     if (!$datetime || $datetime === '0000-00-00 00:00:00') return '';
-    return date($format, strtotime($datetime));
+    try {
+        return date($format, strtotime($datetime));
+    } catch (Exception $e) {
+        return '';
+    }
 }
 
 // Função para gerar token CSRF
@@ -115,6 +144,7 @@ function validateCSRFToken($token) {
 
 // Função para debug
 function debug($data, $die = false) {
+    global $is_production;
     if (!$is_production) {
         echo '<pre>';
         print_r($data);

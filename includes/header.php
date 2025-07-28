@@ -304,6 +304,7 @@ try {
                         <li class="nav-item">
                             <a class="nav-link <?= basename($_SERVER['PHP_SELF']) === 'dashboard.php' ? 'active' : '' ?>" href="dashboard.php">
                                 <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                                <span id="notification-badge" class="badge bg-danger ms-2" style="display: none;">0</span>
                             </a>
                         </li>
                         
@@ -356,8 +357,15 @@ try {
                                 <i class="bi bi-person-circle me-2" style="font-size: 2rem;"></i>
                             <?php endif; ?>
                             <strong><?= escape($_SESSION['user_name'] ?? 'Usuário') ?></strong>
+                            <span id="user-notification-badge" class="badge bg-danger ms-2" style="display: none;">0</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
+                            <li>
+                                <a class="dropdown-item" href="#" onclick="showNotifications()">
+                                    <i class="bi bi-bell me-2"></i>Notificações
+                                    <span id="dropdown-notification-badge" class="badge bg-danger ms-2" style="display: none;">0</span>
+                                </a>
+                            </li>
                             <li><a class="dropdown-item" href="perfil.php"><i class="bi bi-person me-2"></i>Perfil</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="logout.php"><i class="bi bi-box-arrow-right me-2"></i>Sair</a></li>
@@ -372,5 +380,32 @@ try {
                     <button class="btn btn-outline-primary d-md-none" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar">
                         <i class="bi bi-list"></i>
                     </button>
+                </div>
+                
+                <!-- Modal de Notificações -->
+                <div class="modal fade" id="notificationsModal" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">
+                                    <i class="bi bi-bell me-2"></i>Notificações
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body" id="notifications-content">
+                                <div class="text-center py-4">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Carregando...</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-outline-secondary" onclick="markAllNotificationsRead()">
+                                    <i class="bi bi-check-all me-2"></i>Marcar Todas como Lidas
+                                </button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
     <?php endif; ?>

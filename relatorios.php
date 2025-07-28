@@ -44,6 +44,24 @@ foreach ($deslocamentos as $deslocamento) {
     <h1 class="h2">Relatórios de Deslocamentos</h1>
     <?php if (!empty($deslocamentos)): ?>
         <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group me-2">
+                <button type="button" class="btn btn-outline-success dropdown-toggle" data-bs-toggle="dropdown">
+                    <i class="bi bi-download me-2"></i>Exportar
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#" onclick="exportReport('usage', 'csv')">
+                        <i class="bi bi-file-earmark-spreadsheet me-2"></i>Deslocamentos (CSV)
+                    </a></li>
+                    <?php if ($auth->isAdmin()): ?>
+                    <li><a class="dropdown-item" href="#" onclick="exportReport('maintenance', 'csv')">
+                        <i class="bi bi-tools me-2"></i>Manutenções (CSV)
+                    </a></li>
+                    <li><a class="dropdown-item" href="#" onclick="exportReport('costs', 'csv')">
+                        <i class="bi bi-currency-dollar me-2"></i>Custos (CSV)
+                    </a></li>
+                    <?php endif; ?>
+                </ul>
+            </div>
             <button type="button" class="btn btn-outline-success" onclick="exportToPDF()">
                 <i class="bi bi-file-earmark-pdf me-2"></i>Exportar PDF
             </button>
@@ -291,6 +309,15 @@ foreach ($deslocamentos as $deslocamento) {
 </div>
 
 <script>
+function exportReport(type, format) {
+    const params = new URLSearchParams(window.location.search);
+    params.set('type', type);
+    params.set('format', format);
+    
+    const url = `/api/export.php?${params.toString()}`;
+    window.open(url, '_blank');
+}
+
 function exportToPDF() {
     // Criar uma nova janela com o conteúdo da tabela
     const printWindow = window.open('', '_blank');
@@ -352,6 +379,12 @@ document.addEventListener('DOMContentLoaded', function() {
         dataInicio.value = umMesAtras.toISOString().split('T')[0];
         dataFim.value = hoje.toISOString().split('T')[0];
     }
+    
+    // Adicionar tooltips para dados truncados
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
 });
 </script>
 

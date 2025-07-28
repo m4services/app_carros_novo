@@ -26,13 +26,33 @@ try {
     $vehicle = class_exists('Vehicle') ? new Vehicle() : null;
     $maintenance = class_exists('Maintenance') ? new Maintenance() : null;
     $trip = class_exists('Trip') ? new Trip() : null;
+    $fleet_manager = class_exists('FleetManager') ? new FleetManager() : null;
+    $notification_manager = class_exists('NotificationManager') ? new NotificationManager() : null;
 
+    // Obter estatísticas da frota
+    $fleet_stats = $fleet_manager ? $fleet_manager->getFleetStatistics() : [
+        'total_vehicles' => 0,
+        'available_vehicles' => 0,
+        'active_trips' => 0,
+        'monthly_km' => 0,
+        'overdue_maintenances' => 0
+    ];
+    
     $vehicles = $vehicle ? $vehicle->getAll() : [];
     $available_vehicles = $vehicle ? $vehicle->getAvailable() : [];
     $overdue_maintenances = $maintenance ? $maintenance->getOverdue() : [];
     $upcoming_maintenances = $maintenance ? $maintenance->getUpcoming() : [];
     $recent_trips = $trip ? $trip->getTrips($auth->isAdmin() ? null : $_SESSION['user_id'], ['status' => 'finalizado']) : [];
     $recent_trips = array_slice($recent_trips, 0, 5);
+    
+    // Verificar notificações (apenas para admins)
+    if ($auth->isAdmin() && $notification_manager) {
+        $notification_manager->checkOverdueMaintenances();
+        $notification_manager->checkExpiringLicenses();
+    }
+    
+    // Obter veículos que precisam de manutenção
+    $vehicles_needing_maintenance = $fleet_manager ? $fleet_manager->getVehiclesNeedingMaintenance() : [];
 } catch (Exception $e) {
     error_log('Erro ao carregar dados do dashboard: ' . $e->getMessage());
     
@@ -41,6 +61,14 @@ try {
     $overdue_maintenances = [];
     $upcoming_maintenances = [];
     $recent_trips = [];
+    $fleet_stats = [
+        'total_vehicles' => 0,
+        'available_vehicles' => 0,
+        'active_trips' => 0,
+        'monthly_km' => 0,
+        'overdue_maintenances' => 0
+    ];
+    $vehicles_needing_maintenance = [];
     
     $error = 'Erro ao carregar dados. Verifique a conexão com o banco de dados.';
 }
@@ -117,7 +145,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         <div class="text-xs fw-bold text-primary text-uppercase mb-2">
                             Total de Veículos
                         </div>
-                        <div class="h3 mb-0 fw-bold text-dark"><?= count($vehicles) ?></div>
+                        <div class="h3 mb-0 fw-bold text-dark"><?= $fleet_stats['total_vehicles'] ?></div>
                     </div>
                     <div class="col-auto">
                         <i class="bi bi-truck text-primary" style="font-size: 2rem;"></i>
@@ -135,7 +163,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         <div class="text-xs fw-bold text-success text-uppercase mb-2">
                             Veículos Disponíveis
                         </div>
-                        <div class="h3 mb-0 fw-bold text-dark"><?= count($available_vehicles) ?></div>
+                        <div class="h3 mb-0 fw-bold text-dark"><?= $fleet_stats['available_vehicles'] ?></div>
                     </div>
                     <div class="col-auto">
                         <i class="bi bi-check-circle text-success" style="font-size: 2rem;"></i>
@@ -151,12 +179,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
                         <div class="text-xs fw-bold text-warning text-uppercase mb-2">
-                            Manutenções Vencidas
+                            Deslocamentos Ativos
                         </div>
-                        <div class="h3 mb-0 fw-bold text-dark"><?= count($overdue_maintenances) ?></div>
+                        <div class="h3 mb-0 fw-bold text-dark"><?= $fleet_stats['active_trips'] ?></div>
                     </div>
                     <div class="col-auto">
-                        <i class="bi bi-exclamation-triangle text-warning" style="font-size: 2rem;"></i>
+                        <i class="bi bi-play-circle text-warning" style="font-size: 2rem;"></i>
                     </div>
                 </div>
             </div>
@@ -169,18 +197,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
                         <div class="text-xs fw-bold text-info text-uppercase mb-2">
-                            Próximas Manutenções
+                            KM Rodados (Mês)
                         </div>
-                        <div class="h3 mb-0 fw-bold text-dark"><?= count($upcoming_maintenances) ?></div>
+                        <div class="h3 mb-0 fw-bold text-dark"><?= number_format($fleet_stats['monthly_km']) ?></div>
                     </div>
                     <div class="col-auto">
-                        <i class="bi bi-calendar-event text-info" style="font-size: 2rem;"></i>
+                        <i class="bi bi-speedometer text-info" style="font-size: 2rem;"></i>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Alertas de manutenção preventiva -->
+<?php if (!empty($vehicles_needing_maintenance)): ?>
+<div class="alert alert-info">
+    <h5><i class="bi bi-info-circle me-2"></i>Veículos Precisando de Manutenção Preventiva</h5>
+    <ul class="mb-0">
+        <?php foreach ($vehicles_needing_maintenance as $veiculo): ?>
+            <li>
+                <strong><?= escape($veiculo['nome']) ?></strong>
+                <?php if ($veiculo['days_since_oil_change'] > 180): ?>
+                    - Troca de óleo há <?= $veiculo['days_since_oil_change'] ?> dias
+                <?php endif; ?>
+                <?php if ($veiculo['km_since_oil_change'] > 10000): ?>
+                    - Troca de óleo há <?= number_format($veiculo['km_since_oil_change']) ?> km
+                <?php endif; ?>
+                <?php if ($veiculo['days_since_alignment'] > 365): ?>
+                    - Alinhamento há <?= $veiculo['days_since_alignment'] ?> dias
+                <?php endif; ?>
+                <?php if ($veiculo['km_since_alignment'] > 20000): ?>
+                    - Alinhamento há <?= number_format($veiculo['km_since_alignment']) ?> km
+                <?php endif; ?>
+            </li>
+        <?php endforeach; ?>
+    </ul>
+</div>
+<?php endif; ?>
 
 <!-- Alertas de manutenção -->
 <?php if (!empty($overdue_maintenances)): ?>
@@ -232,26 +286,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         <?php else: ?>
             <div class="row">
                 <?php foreach ($vehicles as $veiculo): ?>
-                    <?php $is_available = $vehicle ? $vehicle->isAvailable($veiculo['id']) : false; ?>
+                    <?php 
+                    $is_available = $fleet_manager ? $fleet_manager->isVehicleAvailable($veiculo['id']) : false;
+                    $needs_maintenance = false;
+                    foreach ($vehicles_needing_maintenance as $vm) {
+                        if ($vm['id'] == $veiculo['id']) {
+                            $needs_maintenance = true;
+                            break;
+                        }
+                    }
+                    ?>
                     <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
-                        <div class="card <?= $is_available ? 'border-success' : 'border-danger' ?>" 
+                        <div class="card <?= $is_available ? ($needs_maintenance ? 'border-warning' : 'border-success') : 'border-danger' ?>" 
                              <?= $is_available ? 'style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#startTripModal" data-vehicle-id="' . $veiculo['id'] . '" data-vehicle-name="' . escape($veiculo['nome']) . '" data-vehicle-km="' . $veiculo['hodometro_atual'] . '"' : '' ?>>
                             <div class="position-relative">
                                 <?php if ($veiculo['foto']): ?>
                                     <img src="<?= UPLOADS_URL ?>/veiculos/<?= escape($veiculo['foto']) ?>" 
                                          class="card-img-top" alt="<?= escape($veiculo['nome']) ?>" 
-                                         style="height: 200px; object-fit: cover;">
+                                         style="height: 200px; object-fit: cover;<?= !$is_available ? ' opacity: 0.5; filter: grayscale(50%);' : '' ?>">
                                 <?php else: ?>
                                     <div class="bg-light d-flex align-items-center justify-content-center" 
-                                         style="height: 200px;">
+                                         style="height: 200px;<?= !$is_available ? ' opacity: 0.5;' : '' ?>">
                                         <i class="bi bi-truck text-muted" style="font-size: 3rem;"></i>
                                     </div>
                                 <?php endif; ?>
                                 
                                 <div class="position-absolute top-0 end-0 m-3">
-                                    <span class="badge <?= $is_available ? 'bg-success' : 'bg-danger' ?>">
-                                        <?= $is_available ? 'Disponível' : 'Em uso' ?>
-                                    </span>
+                                    <?php if ($is_available): ?>
+                                        <span class="badge <?= $needs_maintenance ? 'bg-warning text-dark' : 'bg-success' ?>">
+                                            <?= $needs_maintenance ? 'Manutenção' : 'Disponível' ?>
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="badge bg-danger">Em uso</span>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                             
@@ -260,6 +327,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                                 <p class="card-text">
                                     <i class="bi bi-hash me-2"></i><?= escape($veiculo['placa']) ?><br>
                                     <i class="bi bi-speedometer me-2"></i><?= number_format($veiculo['hodometro_atual']) ?> km
+                                    <?php if ($needs_maintenance): ?>
+                                        <br><small class="text-warning">
+                                            <i class="bi bi-exclamation-triangle me-1"></i>Precisa de manutenção
+                                        </small>
+                                    <?php endif; ?>
                                 </p>
                             </div>
                         </div>

@@ -1,10 +1,11 @@
-const CACHE_NAME = 'scv-v1';
+const CACHE_NAME = 'scv-v2';
 const urlsToCache = [
     '/',
     '/dashboard.php',
     '/login.php',
     '/relatorios.php',
     '/perfil.php',
+    '/api/notifications.php',
     '/assets/favicon.ico',
     '/assets/icon-192x192.png',
     '/assets/icon-512x512.png',
@@ -81,11 +82,16 @@ self.addEventListener('push', function(event) {
         badge: '/assets/icon-72x72.png',
         vibrate: [200, 100, 200],
         tag: data.tag || 'notification',
+        data: data.url || '/dashboard.php',
         actions: [
             {
                 action: 'open',
                 title: 'Abrir',
                 icon: '/assets/icon-72x72.png'
+            },
+            {
+                action: 'close',
+                title: 'Fechar'
             }
         ]
     };
@@ -99,9 +105,37 @@ self.addEventListener('push', function(event) {
 self.addEventListener('notificationclick', function(event) {
     event.notification.close();
 
-    if (event.action === 'open') {
+    if (event.action === 'open' || !event.action) {
+        const url = event.notification.data || '/dashboard.php';
         event.waitUntil(
-            clients.openWindow('https://app.plenor.com.br/dashboard.php')
+            clients.openWindow(url)
         );
     }
 });
+
+// Background sync para notificações offline
+self.addEventListener('sync', function(event) {
+    if (event.tag === 'background-sync') {
+        event.waitUntil(doBackgroundSync());
+    }
+});
+
+function doBackgroundSync() {
+    return fetch('/api/notifications.php?action=get')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.notifications.length > 0) {
+                // Mostrar notificações importantes
+                data.notifications.forEach(notification => {
+                    if (notification.tipo === 'warning' || notification.tipo === 'danger') {
+                        self.registration.showNotification(notification.titulo, {
+                            body: notification.mensagem,
+                            icon: '/assets/icon-192x192.png',
+                            tag: 'sync-notification-' + notification.id
+                        });
+                    }
+                });
+            }
+        })
+        .catch(error => console.error('Erro no background sync:', error));
+}

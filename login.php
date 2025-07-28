@@ -153,12 +153,6 @@ try {
                                 <strong>Senha:</strong> admin123
                             </small>
                         </div>
-                        
-                        <div class="text-center mt-3">
-                            <small class="text-muted">
-                                <a href="diagnose.php" class="text-decoration-none">🔍 Diagnóstico do Sistema</a>
-                            </small>
-                        </div>
                     </div>
                 </div>
             </div>

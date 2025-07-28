@@ -2,7 +2,7 @@
 // Configurações específicas para produção
 
 // Verificar se estamos em produção
-if (($_ENV['APP_ENV'] ?? 'production') !== 'production') {
+if (($_ENV['APP_ENV'] ?? 'development') !== 'production') {
     return;
 }
 

@@ -8,7 +8,7 @@ $page_title = 'Dashboard';
 try {
     require_once 'includes/header.php';
 } catch (Exception $e) {
-    die('Erro ao carregar sistema: ' . $e->getMessage() . '<br><a href="diagnose.php">Executar Diagnóstico</a>');
+    die('Erro ao carregar sistema: ' . $e->getMessage());
 }
 
 $auth->requireLogin();

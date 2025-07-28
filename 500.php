@@ -14,9 +14,9 @@ require_once 'includes/header.php';
             <a href="dashboard.php" class="btn btn-primary">
                 <i class="bi bi-house me-2"></i>Voltar ao Dashboard
             </a>
-            <button onclick="location.reload()" class="btn btn-outline-secondary">
+            <a href="javascript:location.reload()" class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-clockwise me-2"></i>Tentar Novamente
-            </button>
+            </a>
         </div>
     </div>
 </div>

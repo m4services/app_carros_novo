@@ -8,6 +8,7 @@ if (!defined('ROOT_PATH')) {
 try {
     require_once ROOT_PATH . '/config/config.php';
     require_once ROOT_PATH . '/config/database.php';
+    require_once ROOT_PATH . '/config/production.php';
 } catch (Exception $e) {
     die('Erro ao carregar configurações: ' . $e->getMessage());
 }

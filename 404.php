@@ -14,9 +14,9 @@ require_once 'includes/header.php';
             <a href="dashboard.php" class="btn btn-primary">
                 <i class="bi bi-house me-2"></i>Voltar ao Dashboard
             </a>
-            <button onclick="history.back()" class="btn btn-outline-secondary">
+            <a href="javascript:history.back()" class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left me-2"></i>Página Anterior
-            </button>
+            </a>
         </div>
     </div>
 </div>

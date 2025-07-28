@@ -10,24 +10,49 @@ try {
     require_once 'includes/header.php';
 } catch (Exception $e) {
     error_log('Erro ao carregar header: ' . $e->getMessage());
-    die('Erro interno do servidor. Tente novamente em alguns minutos.');
+    
+    // Em desenvolvimento, mostrar erro detalhado
+    $is_production = ($_ENV['APP_ENV'] ?? 'development') === 'production';
+    if (!$is_production) {
+        die('<div style="padding: 20px; background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 5px; margin: 20px; font-family: Arial, sans-serif;">
+            <h3>Erro no Dashboard</h3>
+            <p><strong>Erro:</strong> ' . $e->getMessage() . '</p>
+            <p><strong>Arquivo:</strong> ' . $e->getFile() . '</p>
+            <p><strong>Linha:</strong> ' . $e->getLine() . '</p>
+        </div>');
+    } else {
+        die('Erro interno do servidor. Tente novamente em alguns minutos.');
+    }
 }
 
 $auth->requireLogin();
 
-$vehicle = new Vehicle();
-$maintenance = new Maintenance();
-$trip = new Trip();
+try {
+    $vehicle = new Vehicle();
+    $maintenance = new Maintenance();
+    $trip = new Trip();
 
-$vehicles = $vehicle->getAll();
-$available_vehicles = $vehicle->getAvailable();
-$overdue_maintenances = $maintenance->getOverdue();
-$upcoming_maintenances = $maintenance->getUpcoming();
-$recent_trips = $trip->getTrips($auth->isAdmin() ? null : $_SESSION['user_id'], ['status' => 'finalizado']);
-$recent_trips = array_slice($recent_trips, 0, 5);
+    $vehicles = $vehicle->getAll();
+    $available_vehicles = $vehicle->getAvailable();
+    $overdue_maintenances = $maintenance->getOverdue();
+    $upcoming_maintenances = $maintenance->getUpcoming();
+    $recent_trips = $trip->getTrips($auth->isAdmin() ? null : $_SESSION['user_id'], ['status' => 'finalizado']);
+    $recent_trips = array_slice($recent_trips, 0, 5);
+} catch (Exception $e) {
+    error_log('Erro ao carregar dados do dashboard: ' . $e->getMessage());
+    
+    // Definir valores padrão para evitar erros
+    $vehicles = [];
+    $available_vehicles = [];
+    $overdue_maintenances = [];
+    $upcoming_maintenances = [];
+    $recent_trips = [];
+    
+    $error = 'Erro ao carregar dados do dashboard. Verifique a conexão com o banco de dados.';
+}
 
 $message = '';
-$error = '';
+$error = $error ?? '';
 
 // Processar início de deslocamento
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'start_trip') {

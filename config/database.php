@@ -24,7 +24,8 @@ class Database {
                 [
                     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                    PDO::ATTR_EMULATE_PREPARES => false
+                    PDO::ATTR_EMULATE_PREPARES => false,
+                    PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4"
                 ]
             );
         } catch (PDOException $e) {
@@ -32,8 +33,9 @@ class Database {
             error_log($error_msg);
             
             // Em desenvolvimento, mostrar erro específico
-            if (($_ENV['APP_ENV'] ?? 'production') !== 'production') {
-                die($error_msg);
+            $is_production = ($_ENV['APP_ENV'] ?? 'development') === 'production';
+            if (!$is_production) {
+                die("Erro de conexão com banco: " . $e->getMessage() . "<br><br>Verifique se o MySQL está rodando e se as configurações estão corretas.");
             }
             
             http_response_code(500);
@@ -50,6 +52,16 @@ class Database {
     
     public function getConnection() {
         return $this->connection;
+    }
+    
+    // Método para testar conexão
+    public function testConnection() {
+        try {
+            $stmt = $this->connection->query("SELECT 1");
+            return $stmt !== false;
+        } catch (Exception $e) {
+            return false;
+        }
     }
 }
 ?>

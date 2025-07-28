@@ -4,26 +4,62 @@ if (!defined('ROOT_PATH')) {
     define('ROOT_PATH', dirname(__DIR__));
 }
 
-require_once 'config/config.php';
-require_once 'config/database.php';
+// Incluir arquivos de configuração com verificação de erro
+$config_file = ROOT_PATH . '/config/config.php';
+$database_file = ROOT_PATH . '/config/database.php';
+
+if (!file_exists($config_file)) {
+    die('Arquivo de configuração não encontrado: ' . $config_file);
+}
+
+if (!file_exists($database_file)) {
+    die('Arquivo de banco de dados não encontrado: ' . $database_file);
+}
+
+require_once $config_file;
+require_once $database_file;
 
 // Verificar se as classes existem antes de instanciar
 try {
-    if (!class_exists('Auth')) {
-        throw new Exception('Classe Auth não encontrada');
+    // Verificar se o banco está acessível
+    $db_test = Database::getInstance();
+    if (!$db_test->testConnection()) {
+        throw new Exception('Não foi possível conectar ao banco de dados');
     }
-    
-    if (!class_exists('Config')) {
-        throw new Exception('Classe Config não encontrada');
-    }
-    
+
     $auth = new Auth();
     $config_class = new Config();
     $config = $config_class->get();
+    
+    // Verificar se a configuração foi carregada
+    if (!$config) {
+        throw new Exception('Não foi possível carregar as configurações do sistema');
+    }
+    
 } catch (Exception $e) {
     error_log('Erro ao inicializar classes: ' . $e->getMessage());
-    http_response_code(500);
-    die('Erro interno do servidor. Tente novamente em alguns minutos.');
+    
+    // Em desenvolvimento, mostrar erro detalhado
+    $is_production = ($_ENV['APP_ENV'] ?? 'development') === 'production';
+    if (!$is_production) {
+        die('<div style="padding: 20px; background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 5px; margin: 20px; font-family: Arial, sans-serif;">
+            <h3>Erro de Inicialização do Sistema</h3>
+            <p><strong>Erro:</strong> ' . $e->getMessage() . '</p>
+            <p><strong>Arquivo:</strong> ' . $e->getFile() . '</p>
+            <p><strong>Linha:</strong> ' . $e->getLine() . '</p>
+            <hr>
+            <p><strong>Possíveis soluções:</strong></p>
+            <ul>
+                <li>Verifique se o MySQL está rodando</li>
+                <li>Verifique as configurações do banco no arquivo .env</li>
+                <li>Execute o script SQL para criar as tabelas</li>
+                <li>Verifique as permissões dos diretórios</li>
+            </ul>
+        </div>');
+    } else {
+        http_response_code(500);
+        die('Erro interno do servidor. Tente novamente em alguns minutos.');
+    }
 }
 
 // Verificar token de lembrar

@@ -10,7 +10,19 @@ try {
     require_once 'includes/header.php';
 } catch (Exception $e) {
     error_log('Erro ao carregar header: ' . $e->getMessage());
-    die('Erro interno do servidor. Tente novamente em alguns minutos.');
+    
+    // Em desenvolvimento, mostrar erro detalhado
+    $is_production = ($_ENV['APP_ENV'] ?? 'development') === 'production';
+    if (!$is_production) {
+        die('<div style="padding: 20px; background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 5px; margin: 20px; font-family: Arial, sans-serif;">
+            <h3>Erro na página de Login</h3>
+            <p><strong>Erro:</strong> ' . $e->getMessage() . '</p>
+            <p><strong>Arquivo:</strong> ' . $e->getFile() . '</p>
+            <p><strong>Linha:</strong> ' . $e->getLine() . '</p>
+        </div>');
+    } else {
+        die('Erro interno do servidor. Tente novamente em alguns minutos.');
+    }
 }
 
 $error = '';
@@ -27,18 +39,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($email) || empty($senha)) {
             $error = 'Por favor, preencha todos os campos.';
         } else {
-            if ($auth->login($email, $senha, $lembrar)) {
-                redirect('/dashboard.php');
-            } else {
-                $error = 'Email ou senha incorretos.';
+            try {
+                if ($auth->login($email, $senha, $lembrar)) {
+                    redirect('/dashboard.php');
+                } else {
+                    $error = 'Email ou senha incorretos.';
+                }
+            } catch (Exception $e) {
+                error_log('Erro no login: ' . $e->getMessage());
+                $error = 'Erro interno. Tente novamente.';
             }
         }
     }
 }
 
 // Se já está logado, redirecionar
-if ($auth->isLoggedIn()) {
-    redirect('/dashboard.php');
+try {
+    if ($auth->isLoggedIn()) {
+        redirect('/dashboard.php');
+    }
+} catch (Exception $e) {
+    error_log('Erro ao verificar login: ' . $e->getMessage());
 }
 ?>
 

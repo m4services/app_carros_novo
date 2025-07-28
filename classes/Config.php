@@ -13,13 +13,26 @@ class Config {
         
         if (!$config) {
             // Criar configuração padrão se não existir
-            $stmt = $this->db->prepare("
-                INSERT INTO configuracoes (logo, fonte, cor_primaria, cor_secundaria, cor_destaque, nome_empresa) 
-                VALUES (NULL, 'Inter', '#007bff', '#6c757d', '#28a745', 'Sistema de Veículos')
-            ");
-            $stmt->execute();
-            
-            return $this->get();
+            try {
+                $stmt = $this->db->prepare("
+                    INSERT INTO configuracoes (logo, fonte, cor_primaria, cor_secundaria, cor_destaque, nome_empresa) 
+                    VALUES (NULL, 'Inter', '#007bff', '#6c757d', '#28a745', 'Sistema de Veículos')
+                ");
+                $stmt->execute();
+                
+                return $this->get();
+            } catch (Exception $e) {
+                // Retornar configuração padrão se não conseguir inserir
+                return [
+                    'id' => 1,
+                    'logo' => null,
+                    'fonte' => 'Inter',
+                    'cor_primaria' => '#007bff',
+                    'cor_secundaria' => '#6c757d',
+                    'cor_destaque' => '#28a745',
+                    'nome_empresa' => 'Sistema de Veículos'
+                ];
+            }
         }
         
         return $config;

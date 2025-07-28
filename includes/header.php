@@ -191,6 +191,16 @@ try {
             transition: transform 0.3s ease;
         }
         
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.show {
+                transform: translateX(0);
+            }
+        }
+        
         .sidebar-header {
             padding: 1.5rem;
             border-bottom: 1px solid var(--border-color);
@@ -238,6 +248,12 @@ try {
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+            }
         }
         
         .top-bar {

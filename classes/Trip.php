@@ -43,6 +43,7 @@ class Trip {
             }
             
             // Criar deslocamento
+            $data_inicio = date('Y-m-d H:i:s');
             $stmt = $this->db->prepare("
                 INSERT INTO deslocamentos (usuario_id, veiculo_id, destino, km_saida, data_inicio, status) 
                 VALUES (?, ?, ?, ?, ?, 'ativo')
@@ -53,7 +54,7 @@ class Trip {
                 $data['veiculo_id'],
                 $data['destino'],
                 $data['km_saida'],
-                date('Y-m-d H:i:s')
+                $data_inicio
             ]);
             
             if ($result) {
@@ -89,7 +90,8 @@ class Trip {
                 throw new Exception('KM de retorno deve ser maior que KM de saída (' . number_format($trip['km_saida']) . ' km)');
             }
             
-            // Atualizar deslocamento
+            // Atualizar deslocamento com data/hora atual precisa
+            $data_fim = date('Y-m-d H:i:s');
             $stmt = $this->db->prepare("
                 UPDATE deslocamentos SET 
                     km_retorno = ?, 
@@ -102,7 +104,7 @@ class Trip {
             $result = $stmt->execute([
                 $data['km_retorno'],
                 $data['observacoes'] ?? null,
-                date('Y-m-d H:i:s'),
+                $data_fim,
                 $trip_id
             ]);
             

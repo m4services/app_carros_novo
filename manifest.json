@@ -63,14 +63,14 @@
             "name": "Dashboard",
             "short_name": "Dashboard",
             "description": "Acessar dashboard principal",
-            "url": "/dashboard.php",
+            "url": "https://app.plenor.com.br/dashboard.php",
             "icons": [{"src": "assets/icon-192x192.png", "sizes": "192x192"}]
         },
         {
             "name": "Relatórios",
             "short_name": "Relatórios",
             "description": "Ver relatórios de uso",
-            "url": "/relatorios.php",
+            "url": "https://app.plenor.com.br/relatorios.php",
             "icons": [{"src": "assets/icon-192x192.png", "sizes": "192x192"}]
         }
     ],

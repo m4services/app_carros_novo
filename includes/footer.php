@@ -261,13 +261,26 @@
         // Interceptar formulários para mostrar loading
         document.addEventListener('submit', function(e) {
             if (e.target.tagName === 'FORM' && !e.target.classList.contains('no-loading')) {
-                setTimeout(showGlobalLoading, 100);
+                const submitBtn = e.target.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    showLoading(submitBtn);
+                }
             }
         });
         
         // Esconder loading quando a página carregar
         window.addEventListener('load', function() {
             hideGlobalLoading();
+            
+            // Esconder todos os loadings de botões
+            const loadingElements = document.querySelectorAll('.loading.show');
+            loadingElements.forEach(loading => {
+                loading.classList.remove('show');
+                const btn = loading.closest('button');
+                if (btn) {
+                    hideLoading(btn);
+                }
+            });
         });
         
         // Função para copiar texto para clipboard

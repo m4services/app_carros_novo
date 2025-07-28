@@ -411,11 +411,11 @@ try {
         
         /* Estados de loading melhorados */
         .loading {
-            display: none;
+            display: none !important;
         }
         
         .loading.show {
-            display: inline-block;
+            display: inline-block !important;
         }
         
         /* Melhorias nos cards de estatísticas */

@@ -2,15 +2,32 @@
 // Configurações gerais do sistema
 session_start();
 
+// Carregar variáveis de ambiente se existir arquivo .env
+if (file_exists(ROOT_PATH . '/.env')) {
+    $lines = file(ROOT_PATH . '/.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos($line, '=') !== false && strpos($line, '#') !== 0) {
+            list($key, $value) = explode('=', $line, 2);
+            $_ENV[trim($key)] = trim($value);
+        }
+    }
+}
+
 // Definir timezone
 date_default_timezone_set('America/Sao_Paulo');
 
 // Configurações de erro (desabilitar em produção)
-error_reporting(0);
-ini_set('display_errors', 0);
-    // Carregar configurações de produção
-    require_once __DIR__ . '/production.php';
-define('BASE_URL', 'https://app.plenor.com.br');
+$is_production = ($_ENV['APP_ENV'] ?? 'production') === 'production';
+if ($is_production) {
+    error_reporting(0);
+    ini_set('display_errors', 0);
+} else {
+    error_reporting(E_ALL);
+    ini_set('display_errors', 1);
+}
+
+// URLs base
+define('BASE_URL', $_ENV['APP_URL'] ?? 'https://app.plenor.com.br');
 define('ASSETS_URL', BASE_URL . '/assets');
 define('UPLOADS_URL', BASE_URL . '/uploads');
 

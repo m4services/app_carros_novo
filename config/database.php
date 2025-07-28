@@ -4,12 +4,18 @@ class Database {
     private static $instance = null;
     private $connection;
     
-    private $host = 'localhost';
-    private $database = 'sistema_veiculos';
-    private $username = 'root';
-    private $password = '';
+    private $host;
+    private $database;
+    private $username;
+    private $password;
     
     private function __construct() {
+        // Configurações do banco de dados
+        $this->host = $_ENV['DB_HOST'] ?? 'localhost';
+        $this->database = $_ENV['DB_NAME'] ?? 'sistema_veiculos';
+        $this->username = $_ENV['DB_USER'] ?? 'root';
+        $this->password = $_ENV['DB_PASS'] ?? '';
+        
         try {
             $this->connection = new PDO(
                 "mysql:host={$this->host};dbname={$this->database};charset=utf8mb4",
@@ -22,7 +28,9 @@ class Database {
                 ]
             );
         } catch (PDOException $e) {
-            die("Erro de conexão: " . $e->getMessage());
+            error_log("Erro de conexão com banco de dados: " . $e->getMessage());
+            http_response_code(500);
+            die("Erro interno do servidor. Tente novamente em alguns minutos.");
         }
     }
     

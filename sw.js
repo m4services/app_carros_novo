@@ -101,7 +101,7 @@ self.addEventListener('notificationclick', function(event) {
 
     if (event.action === 'open') {
         event.waitUntil(
-            clients.openWindow('/dashboard.php')
+            clients.openWindow('https://app.plenor.com.br/dashboard.php')
         );
     }
 });

@@ -80,17 +80,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 <!-- Cards de estatísticas -->
 <div class="row mb-4">
     <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-left-primary">
+        <div class="card stats-card animate-slide-in-left">
             <div class="card-body">
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                        <div class="text-xs fw-bold text-primary text-uppercase mb-2">
                             Total de Veículos
                         </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?= count($vehicles) ?></div>
+                        <div class="h3 mb-0 fw-bold text-dark"><?= count($vehicles) ?></div>
                     </div>
                     <div class="col-auto">
-                        <i class="bi bi-truck text-primary" style="font-size: 2rem;"></i>
+                        <div class="stats-icon">
+                            <i class="bi bi-truck"></i>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -98,17 +100,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     </div>
     
     <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-left-success">
+        <div class="card stats-card animate-slide-in-left" style="animation-delay: 0.1s;">
             <div class="card-body">
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                        <div class="text-xs fw-bold text-success text-uppercase mb-2">
                             Veículos Disponíveis
                         </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?= count($available_vehicles) ?></div>
+                        <div class="h3 mb-0 fw-bold text-dark"><?= count($available_vehicles) ?></div>
                     </div>
                     <div class="col-auto">
-                        <i class="bi bi-check-circle text-success" style="font-size: 2rem;"></i>
+                        <div class="stats-icon bg-success">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -116,17 +120,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     </div>
     
     <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-left-warning">
+        <div class="card stats-card animate-slide-in-left" style="animation-delay: 0.2s;">
             <div class="card-body">
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                        <div class="text-xs fw-bold text-warning text-uppercase mb-2">
                             Manutenções Vencidas
                         </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?= count($overdue_maintenances) ?></div>
+                        <div class="h3 mb-0 fw-bold text-dark"><?= count($overdue_maintenances) ?></div>
                     </div>
                     <div class="col-auto">
-                        <i class="bi bi-exclamation-triangle text-warning" style="font-size: 2rem;"></i>
+                        <div class="stats-icon bg-warning">
+                            <i class="bi bi-exclamation-triangle"></i>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -134,17 +140,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     </div>
     
     <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-left-info">
+        <div class="card stats-card animate-slide-in-left" style="animation-delay: 0.3s;">
             <div class="card-body">
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                        <div class="text-xs fw-bold text-info text-uppercase mb-2">
                             Próximas Manutenções
                         </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?= count($upcoming_maintenances) ?></div>
+                        <div class="h3 mb-0 fw-bold text-dark"><?= count($upcoming_maintenances) ?></div>
                     </div>
                     <div class="col-auto">
-                        <i class="bi bi-calendar-event text-info" style="font-size: 2rem;"></i>
+                        <div class="stats-icon bg-info">
+                            <i class="bi bi-calendar-event"></i>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -154,7 +162,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
 <!-- Alertas de manutenção -->
 <?php if (!empty($overdue_maintenances)): ?>
-<div class="alert alert-danger">
+<div class="alert alert-danger animate-fade-in-up">
     <h5><i class="bi bi-exclamation-triangle me-2"></i>Manutenções Vencidas</h5>
     <ul class="mb-0">
         <?php foreach ($overdue_maintenances as $manutencao): ?>
@@ -165,7 +173,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 <?php endif; ?>
 
 <?php if (!empty($upcoming_maintenances)): ?>
-<div class="alert alert-warning">
+<div class="alert alert-warning animate-fade-in-up">
     <h5><i class="bi bi-calendar-event me-2"></i>Próximas Manutenções (7 dias)</h5>
     <ul class="mb-0">
         <?php foreach ($upcoming_maintenances as $manutencao): ?>
@@ -176,17 +184,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 <?php endif; ?>
 
 <!-- Veículos -->
-<div class="card mb-4">
+<div class="card mb-4 animate-fade-in-up">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0"><i class="bi bi-truck me-2"></i>Veículos</h5>
+        <h4 class="mb-0"><i class="bi bi-truck me-2"></i>Veículos</h4>
+        <?php if ($auth->isAdmin()): ?>
+            <a href="veiculo-form.php" class="btn btn-light btn-sm">
+                <i class="bi bi-plus-circle me-2"></i>Novo Veículo
+            </a>
+        <?php endif; ?>
     </div>
     <div class="card-body">
         <?php if (empty($vehicles)): ?>
-            <div class="text-center py-4">
-                <i class="bi bi-truck text-muted" style="font-size: 3rem;"></i>
-                <p class="text-muted mt-2">Nenhum veículo cadastrado.</p>
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <i class="bi bi-truck text-muted" style="font-size: 4rem;"></i>
+                </div>
+                <h5 class="text-muted mb-3">Nenhum veículo cadastrado</h5>
+                <p class="text-muted mb-4">Cadastre o primeiro veículo para começar a usar o sistema.</p>
                 <?php if ($auth->isAdmin()): ?>
-                    <a href="veiculo-form.php" class="btn btn-primary">Cadastrar Primeiro Veículo</a>
+                    <a href="veiculo-form.php" class="btn btn-primary btn-lg">
+                        <i class="bi bi-plus-circle me-2"></i>Cadastrar Primeiro Veículo
+                    </a>
                 <?php endif; ?>
             </div>
         <?php else: ?>
@@ -195,36 +213,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     <?php 
                     $is_available = $vehicle->isAvailable($veiculo['id']);
                     ?>
-                    <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
+                    <div class="col-xl-3 col-lg-4 col-md-6 mb-4 animate-fade-in-up" style="animation-delay: <?= $loop_index * 0.1 ?>s;">
                         <div class="card vehicle-card <?= $is_available ? '' : 'unavailable' ?>" 
                              <?= $is_available ? 'data-bs-toggle="modal" data-bs-target="#startTripModal" data-vehicle-id="' . $veiculo['id'] . '" data-vehicle-name="' . escape($veiculo['nome']) . '"' : '' ?>>
                             <div class="position-relative">
                                 <?php if ($veiculo['foto']): ?>
-                                    <img src="<?= UPLOADS_URL ?>/veiculos/<?= escape($veiculo['foto']) ?>" class="card-img-top" alt="<?= escape($veiculo['nome']) ?>" style="height: 200px; object-fit: cover;">
+                                    <img src="<?= UPLOADS_URL ?>/veiculos/<?= escape($veiculo['foto']) ?>" 
+                                         class="card-img-top" alt="<?= escape($veiculo['nome']) ?>" 
+                                         style="height: 220px; object-fit: cover; transition: transform 0.3s ease;"
+                                         onmouseover="this.style.transform='scale(1.05)'"
+                                         onmouseout="this.style.transform='scale(1)'">
                                 <?php else: ?>
-                                    <div class="bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
-                                        <i class="bi bi-truck text-muted" style="font-size: 3rem;"></i>
+                                    <div class="bg-gradient d-flex align-items-center justify-content-center" 
+                                         style="height: 220px; background: linear-gradient(135deg, #f8f9fa, #e9ecef);">
+                                        <i class="bi bi-truck text-muted" style="font-size: 3.5rem;"></i>
                                     </div>
                                 <?php endif; ?>
                                 
-                                <div class="position-absolute top-0 end-0 m-2">
-                                    <span class="badge <?= $is_available ? 'bg-success' : 'bg-danger' ?>">
+                                <div class="position-absolute top-0 end-0 m-3">
+                                    <span class="badge <?= $is_available ? 'bg-success' : 'bg-danger' ?> px-3 py-2">
                                         <?= $is_available ? 'Disponível' : 'Em uso' ?>
                                     </span>
                                 </div>
+                                
+                                <?php if ($is_available): ?>
+                                    <div class="position-absolute bottom-0 start-0 end-0 p-3">
+                                        <div class="bg-dark bg-opacity-75 text-white text-center py-2 rounded">
+                                            <small><i class="bi bi-cursor-fill me-1"></i>Clique para iniciar deslocamento</small>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                             
-                            <div class="card-body">
-                                <h6 class="card-title"><?= escape($veiculo['nome']) ?></h6>
-                                <p class="card-text">
-                                    <small class="text-muted">
-                                        <i class="bi bi-hash me-1"></i><?= escape($veiculo['placa']) ?><br>
-                                        <i class="bi bi-speedometer me-1"></i><?= number_format($veiculo['hodometro_atual']) ?> km
-                                    </small>
-                                </p>
+                            <div class="card-body p-4">
+                                <h5 class="card-title mb-3 fw-bold"><?= escape($veiculo['nome']) ?></h5>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <p class="mb-1">
+                                            <i class="bi bi-hash me-2 text-primary"></i>
+                                            <span class="fw-semibold"><?= escape($veiculo['placa']) ?></span>
+                                        </p>
+                                        <p class="mb-0">
+                                            <i class="bi bi-speedometer me-2 text-primary"></i>
+                                            <span class="fw-semibold"><?= number_format($veiculo['hodometro_atual']) ?> km</span>
+                                        </p>
+                                    </div>
+                                    <?php if ($is_available): ?>
+                                        <i class="bi bi-play-circle-fill text-success" style="font-size: 1.5rem;"></i>
+                                    <?php else: ?>
+                                        <i class="bi bi-pause-circle-fill text-danger" style="font-size: 1.5rem;"></i>
+                                    <?php endif; ?>
+                                </div>
                             </div>
                         </div>
                     </div>
+                    <?php $loop_index = ($loop_index ?? 0) + 1; ?>
                 <?php endforeach; ?>
             </div>
         <?php endif; ?>
@@ -233,31 +276,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
 <!-- Deslocamentos recentes -->
 <?php if (!empty($recent_trips)): ?>
-<div class="card">
+<div class="card animate-fade-in-up">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Deslocamentos Recentes</h5>
-        <a href="relatorios.php" class="btn btn-sm btn-outline-primary">Ver Todos</a>
+        <h4 class="mb-0"><i class="bi bi-clock-history me-2"></i>Deslocamentos Recentes</h4>
+        <a href="relatorios.php" class="btn btn-light btn-sm">
+            <i class="bi bi-eye me-2"></i>Ver Todos
+        </a>
     </div>
     <div class="card-body">
         <div class="table-responsive">
-            <table class="table table-hover">
+            <table class="table table-hover mb-0">
                 <thead>
                     <tr>
-                        <th>Data/Hora</th>
-                        <th>Motorista</th>
-                        <th>Veículo</th>
-                        <th>Destino</th>
-                        <th>KM Rodados</th>
+                        <th class="fw-bold">Data/Hora</th>
+                        <th class="fw-bold">Motorista</th>
+                        <th class="fw-bold">Veículo</th>
+                        <th class="fw-bold">Destino</th>
+                        <th class="fw-bold">KM Rodados</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($recent_trips as $deslocamento): ?>
                         <tr>
-                            <td><?= formatDateTime($deslocamento['data_inicio']) ?></td>
-                            <td><?= escape($deslocamento['motorista_nome']) ?></td>
-                            <td><?= escape($deslocamento['veiculo_nome']) ?></td>
-                            <td><?= escape($deslocamento['destino']) ?></td>
-                            <td><?= $deslocamento['km_retorno'] ? number_format($deslocamento['km_retorno'] - $deslocamento['km_saida']) . ' km' : '-' ?></td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-calendar3 me-2 text-primary"></i>
+                                    <span class="fw-semibold"><?= formatDateTime($deslocamento['data_inicio']) ?></span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-person-circle me-2 text-primary"></i>
+                                    <span><?= escape($deslocamento['motorista_nome']) ?></span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-truck me-2 text-primary"></i>
+                                    <span><?= escape($deslocamento['veiculo_nome']) ?></span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-geo-alt me-2 text-primary"></i>
+                                    <span><?= escape($deslocamento['destino']) ?></span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-speedometer me-2 text-primary"></i>
+                                    <span class="fw-bold text-success">
+                                        <?= $deslocamento['km_retorno'] ? number_format($deslocamento['km_retorno'] - $deslocamento['km_saida']) . ' km' : '-' ?>
+                                    </span>
+                                </div>
+                            </td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -268,13 +340,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 <?php endif; ?>
 
 <!-- Modal para iniciar deslocamento -->
-<div class="modal fade" id="startTripModal" tabindex="-1" aria-labelledby="startTripModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+<div class="modal fade" id="startTripModal" tabindex="-1" aria-labelledby="startTripModalLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="startTripModalLabel">
+                <h4 class="modal-title" id="startTripModalLabel">
                     <i class="bi bi-play-circle me-2"></i>Iniciar Deslocamento
-                </h5>
+                </h4>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" class="needs-validation" novalidate>
@@ -283,15 +355,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 <input type="hidden" name="veiculo_id" id="modal_veiculo_id">
                 
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Veículo Selecionado</label>
-                        <input type="text" class="form-control" id="modal_veiculo_nome" readonly>
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Veículo Selecionado</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-truck"></i></span>
+                            <input type="text" class="form-control" id="modal_veiculo_nome" readonly>
+                        </div>
                     </div>
                     
                     <?php if ($auth->isAdmin()): ?>
-                        <div class="mb-3">
-                            <label for="usuario_id" class="form-label">Motorista <span class="text-danger">*</span></label>
-                            <select class="form-select" name="usuario_id" id="usuario_id" required>
+                        <div class="mb-4">
+                            <label for="usuario_id" class="form-label fw-bold">
+                                Motorista <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                <select class="form-select" name="usuario_id" id="usuario_id" required>
                                 <option value="">Selecione o motorista</option>
                                 <?php 
                                 $user_class = new User();
@@ -301,33 +380,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                                     <option value="<?= $driver['id'] ?>"><?= escape($driver['nome']) ?></option>
                                 <?php endforeach; ?>
                             </select>
+                            </div>
                             <div class="invalid-feedback">Por favor, selecione o motorista.</div>
                         </div>
                     <?php endif; ?>
                     
-                    <div class="mb-3">
-                        <label for="destino" class="form-label">Destino <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="destino" id="destino" required 
-                               placeholder="Para onde será o deslocamento?">
+                    <div class="mb-4">
+                        <label for="destino" class="form-label fw-bold">
+                            Destino <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+                            <input type="text" class="form-control" name="destino" id="destino" required 
+                                   placeholder="Para onde será o deslocamento?">
+                        </div>
                         <div class="invalid-feedback">Por favor, informe o destino.</div>
                     </div>
                     
-                    <div class="mb-3">
-                        <label for="km_saida" class="form-label">KM de Saída <span class="text-danger">*</span></label>
-                        <input type="number" class="form-control" name="km_saida" id="km_saida" required min="0" 
-                               placeholder="Quilometragem atual do veículo">
+                    <div class="mb-4">
+                        <label for="km_saida" class="form-label fw-bold">
+                            KM de Saída <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-speedometer"></i></span>
+                            <input type="number" class="form-control" name="km_saida" id="km_saida" required min="0" 
+                                   placeholder="Quilometragem atual do veículo">
+                            <span class="input-group-text">km</span>
+                        </div>
                         <div class="invalid-feedback">Por favor, informe a quilometragem de saída.</div>
                     </div>
                     
-                    <div class="alert alert-info">
+                    <div class="alert alert-info mb-0">
                         <i class="bi bi-info-circle me-2"></i>
                         <strong>Atenção:</strong> Após iniciar o deslocamento, você será redirecionado para a tela de finalização e não poderá acessar outras partes do sistema até finalizar o deslocamento.
                     </div>
                 </div>
                 
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">
+                <div class="modal-footer p-4">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-2"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary btn-lg">
                         <span class="loading spinner-border spinner-border-sm me-2"></span>
                         <i class="bi bi-play-circle me-2"></i>
                         Iniciar Deslocamento
@@ -340,13 +433,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
 <script>
     // Configurar modal de deslocamento
-    document.getElementById('startTripModal').addEventListener('show.bs.modal', function (event) {
+    const startTripModal = document.getElementById('startTripModal');
+    startTripModal.addEventListener('show.bs.modal', function (event) {
         const button = event.relatedTarget;
         const vehicleId = button.getAttribute('data-vehicle-id');
         const vehicleName = button.getAttribute('data-vehicle-name');
         
         document.getElementById('modal_veiculo_id').value = vehicleId;
         document.getElementById('modal_veiculo_nome').value = vehicleName;
+        
+        // Limpar campos
+        document.getElementById('destino').value = '';
+        document.getElementById('km_saida').value = '';
+        
+        // Focar no primeiro campo
+        setTimeout(() => {
+            <?php if ($auth->isAdmin()): ?>
+                document.getElementById('usuario_id').focus();
+            <?php else: ?>
+                document.getElementById('destino').focus();
+            <?php endif; ?>
+        }, 300);
+    });
+    
+    // Animações de entrada
+    document.addEventListener('DOMContentLoaded', function() {
+        // Adicionar delay progressivo aos cards de veículos
+        const vehicleCards = document.querySelectorAll('.vehicle-card');
+        vehicleCards.forEach((card, index) => {
+            card.style.animationDelay = (index * 0.1) + 's';
+        });
+        
+        // Efeito de hover nos cards de estatísticas
+        const statsCards = document.querySelectorAll('.stats-card');
+        statsCards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-8px) scale(1.02)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
     });
 </script>
 

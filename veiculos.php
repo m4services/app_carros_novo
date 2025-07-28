@@ -35,60 +35,12 @@ $fleet_stats = $fleet_manager ? $fleet_manager->getFleetStatistics() : [
 ];
 ?>
 
-<!-- Header da página -->
-<div class="dashboard-header">
-    <div class="welcome-section">
-        <h1 class="welcome-title">Veículos</h1>
-        <p class="welcome-subtitle">Gerencie sua frota de veículos</p>
-    </div>
-    <div class="quick-actions">
-        <a href="veiculo-form.php" class="btn-quick-action">
-            <i class="bi bi-plus-circle"></i>
-            <span>Novo Veículo</span>
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Veículos</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="veiculo-form.php" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-2"></i>Novo Veículo
         </a>
-    </div>
-</div>
-
-<!-- Cards de estatísticas -->
-<div class="stats-grid">
-    <div class="stat-card">
-        <div class="stat-icon primary">
-            <i class="bi bi-truck"></i>
-        </div>
-        <div class="stat-content">
-            <div class="stat-number"><?= $fleet_stats['total_vehicles'] ?></div>
-            <div class="stat-label">Total de Veículos</div>
-        </div>
-    </div>
-    
-    <div class="stat-card">
-        <div class="stat-icon success">
-            <i class="bi bi-check-circle"></i>
-        </div>
-        <div class="stat-content">
-            <div class="stat-number"><?= $fleet_stats['available_vehicles'] ?></div>
-            <div class="stat-label">Veículos Disponíveis</div>
-        </div>
-    </div>
-    
-    <div class="stat-card">
-        <div class="stat-icon warning">
-            <i class="bi bi-play-circle"></i>
-        </div>
-        <div class="stat-content">
-            <div class="stat-number"><?= $fleet_stats['active_trips'] ?></div>
-            <div class="stat-label">Deslocamentos Ativos</div>
-        </div>
-    </div>
-    
-    <div class="stat-card">
-        <div class="stat-icon info">
-            <i class="bi bi-speedometer"></i>
-        </div>
-        <div class="stat-content">
-            <div class="stat-number"><?= number_format($fleet_stats['monthly_km']) ?></div>
-            <div class="stat-label">KM Rodados (Mês)</div>
-        </div>
     </div>
 </div>
 
@@ -108,241 +60,177 @@ $fleet_stats = $fleet_manager ? $fleet_manager->getFleetStatistics() : [
     </div>
 <?php endif; ?>
 
-<!-- Lista de veículos -->
-<div class="vehicles-section">
-    <div class="section-header">
-        <h2>Lista de Veículos</h2>
-        <div class="section-actions">
-            <button class="btn-refresh" onclick="refreshPage()">
-                <i class="bi bi-arrow-clockwise"></i>
-            </button>
-        </div>
-    </div>
-
-    <?php if (empty($vehicles)): ?>
-        <div class="empty-state">
-            <div class="empty-icon">
-                <i class="bi bi-truck"></i>
-            </div>
-            <h3>Nenhum veículo cadastrado</h3>
-            <p>Cadastre o primeiro veículo para começar a usar o sistema.</p>
-            <a href="veiculo-form.php" class="btn btn-primary">
-                <i class="bi bi-plus-circle me-2"></i>Cadastrar Primeiro Veículo
-            </a>
-        </div>
-    <?php else: ?>
-        <div class="vehicles-grid">
-            <?php foreach ($vehicles as $veiculo): ?>
-                <?php 
-                $is_available = $fleet_manager ? $fleet_manager->isVehicleAvailable($veiculo['id']) : $veiculo['disponivel'];
-                ?>
-                <div class="vehicle-card-admin <?= $is_available ? 'available' : 'unavailable' ?>">
-                    <div class="vehicle-image">
-                        <?php if ($veiculo['foto']): ?>
-                            <img src="<?= UPLOADS_URL ?>/veiculos/<?= escape($veiculo['foto']) ?>" 
-                                 alt="<?= escape($veiculo['nome']) ?>">
-                        <?php else: ?>
-                            <div class="vehicle-placeholder">
-                                <i class="bi bi-truck"></i>
-                            </div>
-                        <?php endif; ?>
-                        <div class="vehicle-status">
-                            <span class="status-badge <?= $is_available ? 'available' : 'unavailable' ?>">
-                                <?= $is_available ? 'Disponível' : 'Em uso' ?>
-                            </span>
+<!-- Cards de estatísticas -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Total de Veículos
                         </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $fleet_stats['total_vehicles'] ?></div>
                     </div>
-                    <div class="vehicle-info">
-                        <h3><?= escape($veiculo['nome']) ?></h3>
-                        <div class="vehicle-details">
-                            <span class="plate"><?= escape($veiculo['placa']) ?></span>
-                            <span class="km"><?= number_format($veiculo['hodometro_atual']) ?> km</span>
-                        </div>
-                        <?php if ($veiculo['troca_oleo_data']): ?>
-                            <div class="maintenance-info">
-                                <i class="bi bi-droplet"></i>
-                                Último óleo: <?= formatDate($veiculo['troca_oleo_data']) ?>
-                            </div>
-                        <?php endif; ?>
-                        <?php if ($veiculo['observacoes']): ?>
-                            <div class="vehicle-notes">
-                                <?= escape(substr($veiculo['observacoes'], 0, 60)) ?>...
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                    <div class="vehicle-actions">
-                        <a href="veiculo-form.php?id=<?= $veiculo['id'] ?>" class="btn-action edit">
-                            <i class="bi bi-pencil"></i>
-                            Editar
-                        </a>
-                        <button type="button" class="btn-action delete" 
-                                onclick="deleteVehicle(<?= $veiculo['id'] ?>, '<?= escape($veiculo['nome']) ?>')">
-                            <i class="bi bi-trash"></i>
-                            Excluir
-                        </button>
+                    <div class="col-auto">
+                        <i class="bi bi-truck text-primary" style="font-size: 2rem;"></i>
                     </div>
                 </div>
-            <?php endforeach; ?>
+            </div>
         </div>
-    <?php endif; ?>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Veículos Disponíveis
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $fleet_stats['available_vehicles'] ?></div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-check-circle text-success" style="font-size: 2rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Deslocamentos Ativos
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $fleet_stats['active_trips'] ?></div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-play-circle text-warning" style="font-size: 2rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            KM Rodados (Mês)
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800"><?= number_format($fleet_stats['monthly_km']) ?></div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-speedometer text-info" style="font-size: 2rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
-<style>
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-}
-
-.stat-card {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: 1rem;
-    padding: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    transition: all 0.3s ease;
-}
-
-.stat-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
-}
-
-.stat-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    color: white;
-}
-
-.stat-icon.primary { background: var(--primary-color); }
-.stat-icon.success { background: var(--accent-color); }
-.stat-icon.warning { background: #f59e0b; }
-.stat-icon.info { background: #3b82f6; }
-
-.stat-number {
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    line-height: 1;
-}
-
-.stat-label {
-    color: var(--text-secondary);
-    font-size: 0.875rem;
-    font-weight: 500;
-}
-
-.vehicle-card-admin {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: 1rem;
-    overflow: hidden;
-    transition: all 0.3s ease;
-}
-
-.vehicle-card-admin:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
-    border-color: var(--primary-color);
-}
-
-.vehicle-card-admin.unavailable {
-    opacity: 0.7;
-}
-
-.maintenance-info {
-    color: var(--text-secondary);
-    font-size: 0.75rem;
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    margin-top: 0.5rem;
-}
-
-.vehicle-notes {
-    color: var(--text-secondary);
-    font-size: 0.75rem;
-    margin-top: 0.5rem;
-    font-style: italic;
-}
-
-.vehicle-actions {
-    padding: 1rem;
-    border-top: 1px solid var(--border-color);
-    display: flex;
-    gap: 0.75rem;
-}
-
-.btn-action {
-    flex: 1;
-    padding: 0.5rem 1rem;
-    border: 1px solid var(--border-color);
-    border-radius: 0.5rem;
-    background: none;
-    color: var(--text-primary);
-    text-decoration: none;
-    font-size: 0.875rem;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    transition: all 0.2s;
-    cursor: pointer;
-}
-
-.btn-action.edit:hover {
-    border-color: var(--primary-color);
-    color: var(--primary-color);
-    background: color-mix(in srgb, var(--primary-color) 5%, transparent);
-}
-
-.btn-action.delete:hover {
-    border-color: #ef4444;
-    color: #ef4444;
-    background: color-mix(in srgb, #ef4444 5%, transparent);
-}
-
-@media (max-width: 768px) {
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 1rem;
-    }
-    
-    .stat-card {
-        padding: 1rem;
-    }
-    
-    .stat-icon {
-        width: 50px;
-        height: 50px;
-        font-size: 1.25rem;
-    }
-    
-    .stat-number {
-        font-size: 1.5rem;
-    }
-}
-</style>
-
-<script>
-function refreshPage() {
-    const refreshBtn = document.querySelector('.btn-refresh');
-    refreshBtn.innerHTML = '<i class="bi bi-arrow-clockwise spin"></i>';
-    
-    setTimeout(() => {
-        window.location.reload();
-    }, 500);
-}
-</script>
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Lista de Veículos</h6>
+    </div>
+    <div class="card-body">
+        <?php if (empty($vehicles)): ?>
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <i class="bi bi-truck text-muted" style="font-size: 4rem;"></i>
+                </div>
+                <h5 class="text-muted mb-3">Nenhum veículo cadastrado</h5>
+                <p class="text-muted mb-4">Cadastre o primeiro veículo para começar a usar o sistema.</p>
+                <a href="veiculo-form.php" class="btn btn-primary btn-lg">
+                    <i class="bi bi-plus-circle me-2"></i>Cadastrar Primeiro Veículo
+                </a>
+            </div>
+        <?php else: ?>
+            <div class="table-responsive">
+                <table class="table table-bordered" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Foto</th>
+                            <th>Nome</th>
+                            <th>Placa</th>
+                            <th>Hodômetro</th>
+                            <th>Status</th>
+                            <th>Última Manutenção</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($vehicles as $veiculo): ?>
+                            <?php 
+                            $is_available = $fleet_manager ? $fleet_manager->isVehicleAvailable($veiculo['id']) : $veiculo['disponivel'];
+                            ?>
+                            <tr>
+                                <td class="text-center">
+                                    <?php if ($veiculo['foto']): ?>
+                                        <img src="<?= UPLOADS_URL ?>/veiculos/<?= escape($veiculo['foto']) ?>" 
+                                             alt="<?= escape($veiculo['nome']) ?>" 
+                                             class="img-thumbnail" style="width: 60px; height: 60px; object-fit: cover;">
+                                    <?php else: ?>
+                                        <div class="bg-light d-flex align-items-center justify-content-center" 
+                                             style="width: 60px; height: 60px;">
+                                            <i class="bi bi-truck text-muted"></i>
+                                        </div>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <div class="fw-bold"><?= escape($veiculo['nome']) ?></div>
+                                    <?php if ($veiculo['observacoes']): ?>
+                                        <small class="text-muted"><?= escape(substr($veiculo['observacoes'], 0, 50)) ?>...</small>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary"><?= escape($veiculo['placa']) ?></span>
+                                </td>
+                                <td><?= number_format($veiculo['hodometro_atual']) ?> km</td>
+                                <td>
+                                    <?php if ($is_available): ?>
+                                        <span class="badge bg-success">Disponível</span>
+                                    <?php else: ?>
+                                        <span class="badge bg-danger">Em uso</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <?php if ($veiculo['troca_oleo_data']): ?>
+                                        <div>Óleo: <?= formatDate($veiculo['troca_oleo_data']) ?></div>
+                                        <?php if ($veiculo['troca_oleo_km']): ?>
+                                            <small class="text-muted"><?= number_format($veiculo['troca_oleo_km']) ?> km</small>
+                                        <?php endif; ?>
+                                    <?php else: ?>
+                                        <small class="text-muted">Não informado</small>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="veiculo-form.php?id=<?= $veiculo['id'] ?>" 
+                                           class="btn btn-sm btn-outline-primary" title="Editar">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                onclick="deleteVehicle(<?= $veiculo['id'] ?>, '<?= escape($veiculo['nome']) ?>')" 
+                                                title="Excluir">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php endif; ?>
+    </div>
+</div>
 
 <!-- Modal de confirmação de exclusão -->
 <div class="modal fade" id="deleteModal" tabindex="-1">
